@@ -16,7 +16,6 @@ package org.openmrs.module.conceptmanagementapps.api;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 
-import java.io.File;
 import java.io.PrintWriter;
 import java.net.URL;
 import java.util.ArrayList;
@@ -24,7 +23,6 @@ import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.openmrs.Concept;
 import org.openmrs.ConceptClass;
@@ -35,7 +33,6 @@ import org.openmrs.api.context.Context;
 import org.openmrs.test.BaseContextSensitiveTest;
 import org.openmrs.test.BaseModuleContextSensitiveTest;
 import org.springframework.mock.web.MockMultipartFile;
-import org.junit.rules.ExternalResource;
 
 /**
  * Tests {@link $ ConceptManagementAppsService} .
@@ -115,11 +112,30 @@ public class ConceptManagementAppsServiceTest extends BaseModuleContextSensitive
 	}
 	
 	@Test
-	public void uploadSnomedFile_shouldPassWithoutErrors() throws Exception {
+	public void addNamesToSnomedCTTerms_shouldPassWithoutErrors() throws Exception {
 		conceptManagementAppsService = (ConceptManagementAppsService) Context.getService(ConceptManagementAppsService.class);
 		executeDataSet("concepts.xml");
-		URL url = this.getClass().getResource("/sct2_Description_Full-en_INT_20130131.csv");
-		conceptManagementAppsService.readInSnomedFile(url.getPath());
+
+		URL url = this.getClass().getResource("/snomedFiles");
+		conceptManagementAppsService.addNamesToSnomedCTTerms(url.getPath());
+	}
+	
+	@Test
+	public void addAncestorsToSnomedCTTerms_shouldPassWithoutErrors() throws Exception {
+		conceptManagementAppsService = (ConceptManagementAppsService) Context.getService(ConceptManagementAppsService.class);
+		executeDataSet("concepts.xml");
+
+		URL url = this.getClass().getResource("/snomedFiles");
+		conceptManagementAppsService.addAncestorsToSnomedCTTerms(url.getPath());
+	}
+	
+	@Test
+	public void addParentsToSnomedCTTerms_shouldPassWithoutErrors() throws Exception {
+		conceptManagementAppsService = (ConceptManagementAppsService) Context.getService(ConceptManagementAppsService.class);
+		executeDataSet("concepts.xml");
+
+		URL url = this.getClass().getResource("/snomedFiles");
+		conceptManagementAppsService.addParentsToSnomedCTTerms(url.getPath());
 	}
 	
 	@Test

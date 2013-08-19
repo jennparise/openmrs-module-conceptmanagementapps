@@ -49,7 +49,18 @@ public interface ConceptManagementAppsService extends OpenmrsService {
 	public FileDownload uploadSpreadsheet(MultipartFile spreadsheetFile) throws APIException;
 	
 	@Transactional
-	public void readInSnomedFile(String snomedFile1) throws APIException;
+	public void addNamesToSnomedCTTerms(String snomedFileDirectory) throws APIException;
+	
+	@Transactional
+	public void addAncestorsToSnomedCTTerms(String snomedFileDirectory) throws APIException;
+	
+	@Transactional
+	public void addParentsToSnomedCTTerms(String snomedFileDirectory) throws APIException;
+	
+	public void setCancelManageSnomedCTProcess(Boolean cancelProcess) throws APIException;
+	
+	public Boolean getCancelManageSnomedCTProcess() throws APIException;
+
 	
 	@Transactional(readOnly = true)
 	public List<ConceptReferenceTerm> getConceptReferenceTerms(ConceptSource specifiedSource, Integer startIndex,
