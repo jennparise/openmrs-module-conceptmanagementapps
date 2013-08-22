@@ -31,7 +31,7 @@ public class ManageSnomedCTPageController {
 			
 			conceptManagementAppsService.setCancelManageSnomedCTProcess(false);
 			conceptManagementAppsService.addAncestorsToSnomedCTTerms(snomedFileDirectoryLocation);
-			model.addAttribute("processRunning", "addAncestors");
+			model.addAttribute("processRunning", "none");
 			
 		}
 		
@@ -39,7 +39,7 @@ public class ManageSnomedCTPageController {
 			
 			conceptManagementAppsService.setCancelManageSnomedCTProcess(false);
 			conceptManagementAppsService.addParentsToSnomedCTTerms(snomedFileDirectoryLocation);
-			model.addAttribute("processRunning", "addParents");
+			model.addAttribute("processRunning", "none");
 			
 		}
 		
@@ -47,7 +47,7 @@ public class ManageSnomedCTPageController {
 			
 			conceptManagementAppsService.setCancelManageSnomedCTProcess(false);
 			conceptManagementAppsService.addNamesToSnomedCTTerms(snomedFileDirectoryLocation);
-			model.addAttribute("processRunning", "addNames");
+			model.addAttribute("processRunning", "none");
 			
 		}
 		if (StringUtils.equalsIgnoreCase("cancel", inputType)) {
@@ -61,7 +61,7 @@ public class ManageSnomedCTPageController {
 	public void get(UiSessionContext sessionContext, PageModel model) throws Exception {
 		ConceptManagementAppsService conceptManagementAppsService = (ConceptManagementAppsService) Context
 		        .getService(ConceptManagementAppsService.class);
-		
+
 		if (conceptManagementAppsService.getCancelManageSnomedCTProcess()) {
 			model.addAttribute("processRunning", "none");
 		} else {

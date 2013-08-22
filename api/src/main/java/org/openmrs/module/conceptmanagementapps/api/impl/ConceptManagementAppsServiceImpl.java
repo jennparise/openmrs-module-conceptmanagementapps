@@ -91,7 +91,7 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 	
 	private static String snomedFileDirectoryLocation;
 	
-	private static boolean cancelManageSnomedCTProcess = false;
+	private static boolean cancelManageSnomedCTProcess = true;
 	
 	/**
 	 * @param dao the dao to set

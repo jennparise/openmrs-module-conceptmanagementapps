@@ -115,8 +115,9 @@ public class ConceptManagementAppsServiceTest extends BaseModuleContextSensitive
 	public void addNamesToSnomedCTTerms_shouldPassWithoutErrors() throws Exception {
 		conceptManagementAppsService = (ConceptManagementAppsService) Context.getService(ConceptManagementAppsService.class);
 		executeDataSet("concepts.xml");
-
+		
 		URL url = this.getClass().getResource("/snomedFiles");
+		conceptManagementAppsService.setCancelManageSnomedCTProcess(false);
 		conceptManagementAppsService.addNamesToSnomedCTTerms(url.getPath());
 	}
 	
@@ -126,6 +127,7 @@ public class ConceptManagementAppsServiceTest extends BaseModuleContextSensitive
 		executeDataSet("concepts.xml");
 
 		URL url = this.getClass().getResource("/snomedFiles");
+		conceptManagementAppsService.setCancelManageSnomedCTProcess(false);
 		conceptManagementAppsService.addAncestorsToSnomedCTTerms(url.getPath());
 	}
 	
@@ -135,6 +137,7 @@ public class ConceptManagementAppsServiceTest extends BaseModuleContextSensitive
 		executeDataSet("concepts.xml");
 
 		URL url = this.getClass().getResource("/snomedFiles");
+		conceptManagementAppsService.setCancelManageSnomedCTProcess(false);
 		conceptManagementAppsService.addParentsToSnomedCTTerms(url.getPath());
 	}
 	
