@@ -28,7 +28,9 @@ ${ ui.includeFragment("uicommons", "validationMessages")}
  <script type="text/javascript">
     var breadcrumbs = [
         { icon: "icon-home", link: '/' + OPENMRS_CONTEXT_PATH + '/index.htm' },
-        { label: "${ ui.message("conceptmanagementapps.browsereferenceterms.title") }", link: "${ ui.pageLink("conceptmanagementapps", "browseReferenceTerms") }" }
+        { label: "${ ui.message("conceptmanagementapps.homepage.title") }", link: "${ ui.pageLink("conceptmanagementapps", "conceptManagementAppsMain") }" },
+        { label: "${ ui.message("conceptmanagementapps.addterm.title") }", link: "${ ui.pageLink("conceptmanagementapps", "addTerm") }" },
+        { label: "${ ui.message("conceptmanagementapps.browsereferenceterms.title") }", link: "${ ui.pageLink("conceptmanagementapps", "browseReferenceTermsTable") }" }
     ];
  </script>
 
