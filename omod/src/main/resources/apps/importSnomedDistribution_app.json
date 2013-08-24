@@ -1,0 +1,16 @@
+[
+	{
+		"id": "conceptmanagementapps.importSnomedDistribution",
+		"description": "${project.parent.artifactId}.description",
+		"extensions": [
+			{
+			"id": "conceptmanagementapps.importSnomedDistribution",
+			"extensionPointId": "org.openmrs.conceptmanagementapps.homepageLink",
+			"type": "link",
+			"label": "conceptmanagementapps.mainpage.importsnomeddistribution.title",
+			"url": "conceptmanagementapps/manageSnomedCT.page"
+
+			}
+		]
+	}
+]

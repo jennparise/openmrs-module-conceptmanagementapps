@@ -4,12 +4,19 @@
 		"description": "${project.parent.artifactId}.description",
 		"extensions": [
 			{
-			"id": "conceptmanagementapps.conceptmanagementappsHomepageLink",
-			"extensionPointId": "org.openmrs.referenceapplication.homepageLink",
+			"id": "conceptmanagementapps.conceptsMissingMappingsDownload",
+			"extensionPointId": "org.openmrs.conceptmanagementapps.homepageLink",
 			"type": "link",
-			"label": "conceptmanagementapps.title",
-			"url": "conceptmanagementapps/missingConceptMappings.page",
-			"icon": "icon-magic"
+			"label": "conceptmanagementapps.downloadpage.title",
+			"url": "conceptmanagementapps/downloadSpreadsheet.page"
+
+			},
+			{
+			"id": "conceptmanagementapps.conceptsMissingMappingsUpload",
+			"extensionPointId": "org.openmrs.conceptmanagementapps.homepageLink",
+			"type": "link",
+			"label": "conceptmanagementapps.uploadpage.title",
+			"url": "conceptmanagementapps/uploadSpreadsheet.page"
 
 			}
 		]

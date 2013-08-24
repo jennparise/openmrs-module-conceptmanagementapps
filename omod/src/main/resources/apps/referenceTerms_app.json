@@ -1,0 +1,24 @@
+[
+	{
+		"id": "conceptmanagementapps.referenceTerms",
+		"description": "${project.parent.artifactId}.description",
+		"extensions": [
+			{
+			"id": "conceptmanagementapps.browseReferenceTerms",
+			"extensionPointId": "org.openmrs.conceptmanagementapps.homepageLink",
+			"type": "link",
+			"label": "conceptmanagementapps.browsereferenceterms.title",
+			"url": "conceptmanagementapps/browseReferenceTermsTable.page"
+
+			},
+			{
+			"id": "conceptmanagementapps.addReferenceTerms",
+			"extensionPointId": "org.openmrs.conceptmanagementapps.homepageLink",
+			"type": "link",
+			"label": "conceptmanagementapps.mainpage.addterm.title",
+			"url": "conceptmanagementapps/addTerm.page"
+
+			}
+		]
+	}
+]

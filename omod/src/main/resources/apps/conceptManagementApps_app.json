@@ -1,0 +1,24 @@
+[
+	{
+		"id": "conceptmanagementapps.conceptManagementAppsMain",
+		"description": "${project.parent.artifactId}.description",
+		"extensionPoints": [        
+            {
+                "id": "org.openmrs.conceptmanagementapps.homepageLink",       
+                "description": "conceptmanagementapps.homepageExt.description"
+            }
+            
+        ],
+		"extensions": [
+			{
+			"id": "conceptmanagementapps.conceptmanagementappsHomepage",
+			"extensionPointId": "org.openmrs.referenceapplication.homepageLink",
+			"type": "link",
+			"label": "conceptmanagementapps.title",
+			"url": "conceptmanagementapps/conceptManagementAppsMain.page",
+			"icon": "icon-magic"
+
+			}
+		]
+	}
+]
