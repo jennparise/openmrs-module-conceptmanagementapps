@@ -63,7 +63,9 @@ import org.openmrs.api.ConceptService;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.db.DAOException;
 import org.openmrs.api.impl.BaseOpenmrsService;
+import org.openmrs.module.conceptmanagementapps.ConceptManagementAppsConstants;
 import org.openmrs.module.conceptmanagementapps.api.ConceptManagementAppsService;
+import org.openmrs.module.conceptmanagementapps.api.ManageSnomedCTProcess;
 import org.openmrs.module.conceptmanagementapps.api.db.ConceptManagementAppsDAO;
 import org.openmrs.ui.framework.page.FileDownload;
 import org.springframework.transaction.annotation.Transactional;
@@ -85,13 +87,35 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 	
 	private static final CsvPreference TAB_DELIMITED = new CsvPreference.Builder('\"', '\t', "\n").build();
 	
+	private static final String RETIRED_TERM = "1";
+	
+	private static final String PARENT_TERM = "sourceId";
+	
+	private static final String CHILD_TERM = "destinationId";
+	
+	private static final String TERM_ID = "conceptId";
+	
+	private static final String IS_A_RELATIONSHIP = "116680003";
+	
+	private static final String ROW_ID = "id";
+	
+	private static final String TERM_NAME = "term";
+	
+	private static final String EFFECTIVE_DATE = "effectiveDate";
+	
+	private static final String RELATIONSHIP_FILE = "sct2_Relationship_Full_INT_20130131.txt";
+	
+	private static final String DESCRIPTION_FILE = "sct2_Description_Full-en_INT_20130131.txt";
+	
 	private ConceptManagementAppsDAO dao;
+	
+	private boolean cancelManageSnomedCTProcess = true;
+	
+	private ManageSnomedCTProcess currentSnomedCTProcess;
 	
 	private static StandardAnalyzer analyzer = new StandardAnalyzer(Version.LUCENE_44);
 	
-	private static String snomedFileDirectoryLocation;
-	
-	private static boolean cancelManageSnomedCTProcess = true;
+	private static String snomedIndexFileDirectoryLocation;
 	
 	/**
 	 * @param dao the dao to set
@@ -105,6 +129,20 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 	 */
 	public ConceptManagementAppsDAO getDao() {
 		return dao;
+	}
+	
+	/**
+	 * @param currentSnomedCTProcess the currentSnomedCTProcess to set
+	 */
+	public void setCurrentSnomedCTProcess(ManageSnomedCTProcess currentSnomedCTProcess) {
+		this.currentSnomedCTProcess = currentSnomedCTProcess;
+	}
+	
+	/**
+	 * @return the currentSnomedCTProcess
+	 */
+	public ManageSnomedCTProcess getCurrentSnomedCTProcess() {
+		return currentSnomedCTProcess;
 	}
 	
 	/**
@@ -235,179 +273,37 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 	}
 	
 	@Transactional
-	public void addParentsToSnomedCTTerms(String snomedFileDirectory) throws APIException {
-		
-		snomedFileDirectoryLocation = snomedFileDirectory + "/tmpLucene";
-		
-		ConceptService cs = Context.getConceptService();
-		
-		indexSnomedFiles(snomedFileDirectory);
-		
-		ConceptSource snomedSource = cs.getConceptSource(1);
-		ConceptMapType snomedMapType = cs.getConceptMapType(1);
-		
-		List<ConceptReferenceTerm> sourceRefTerms = getConceptReferenceTerms(snomedSource, 0, -1, "code", 1);
-		List<ConceptReferenceTerm> listOfMappedTerms = new ArrayList<ConceptReferenceTerm>();
-		List<ConceptReferenceTerm> listOfTermsToSave = new ArrayList<ConceptReferenceTerm>();
-		
-		Set<Long> listOfNewTermIds = new HashSet<Long>();
-		Set<Integer> listOfDocIds = new HashSet<Integer>();
-		Set<Integer> listOfExistingIds = new HashSet<Integer>();
-		Set<ConceptReferenceTerm> listOfNewTerms = new HashSet<ConceptReferenceTerm>();
-		
-		try {
-			IndexReader reader = DirectoryReader.open(FSDirectory.open(new File(snomedFileDirectoryLocation)));
-			IndexSearcher searcher = new IndexSearcher(reader);
-			
-			for (ConceptReferenceTerm term : sourceRefTerms) {
-				
-				Set<Integer> tmpListOfDocIds = new HashSet<Integer>();
-				
-				tmpListOfDocIds = searchIndexesGetParentTermIds(term.getCode(), listOfNewTermIds, listOfDocIds,
-				    snomedSource, searcher);
-				
-				listOfExistingIds.add(term.getCode().hashCode());
-				
-				listOfDocIds.addAll(tmpListOfDocIds);
-				
-			}
-			
-			listOfNewTerms = createNewTerms(listOfDocIds, searcher, snomedSource, listOfExistingIds);
-			listOfTermsToSave.addAll(listOfNewTerms);
-			if (listOfTermsToSave != null) {
-				saveNewOrUpdatedRefTerms(listOfTermsToSave);
-			}
-			
-			List<ConceptReferenceTerm> sourceRefTermsNew = getConceptReferenceTerms(snomedSource, 0, -1, "code", 1);
-			listOfMappedTerms = createNewMappings(sourceRefTermsNew, searcher, snomedMapType);
-			if (listOfMappedTerms != null) {
-				saveNewOrUpdatedRefTerms(listOfMappedTerms);
-			}
-			
-			reader.close();
-		}
-		catch (IOException e) {
-			
-		}
-		finally {
-			try {
-				FileUtils.cleanDirectory(new File(snomedFileDirectoryLocation));
-				
-			}
-			catch (IOException e) {
-				log.error("Error Adding Parents ", e);
-			}
-		}
-		
-	}
-	
-	@Transactional
-	public void addAncestorsToSnomedCTTerms(String snomedFileDirectory) throws APIException {
-		
-		snomedFileDirectoryLocation = snomedFileDirectory + "/tmpLucene";
-		
-		ConceptService cs = Context.getConceptService();
-		
-		indexSnomedFiles(snomedFileDirectory);
-		
-		ConceptSource snomedSource = cs.getConceptSource(1);
-		ConceptMapType snomedMapType = cs.getConceptMapType(1);
-		
-		List<ConceptReferenceTerm> sourceRefTerms = getConceptReferenceTerms(snomedSource, 0, -1, "code", 1);
-		List<ConceptReferenceTerm> listOfMappedTerms = new ArrayList<ConceptReferenceTerm>();
-		List<ConceptReferenceTerm> listOfTermsToSave = new ArrayList<ConceptReferenceTerm>();
-		
-		Set<Long> listOfNewTermIds = new HashSet<Long>();
-		Set<Integer> listOfDocIds = new HashSet<Integer>();
-		Set<Integer> listOfExistingIds = new HashSet<Integer>();
-		Set<ConceptReferenceTerm> listOfNewTerms = new HashSet<ConceptReferenceTerm>();
-		
-		try {
-			IndexReader reader = DirectoryReader.open(FSDirectory.open(new File(snomedFileDirectoryLocation)));
-			IndexSearcher searcher = new IndexSearcher(reader);
-			
-			for (ConceptReferenceTerm term : sourceRefTerms) {
-				if (!getCancelManageSnomedCTProcess()) {
-					Set<Integer> tmpListOfDocIds = new HashSet<Integer>();
-					
-					tmpListOfDocIds = searchIndexesGetAncestorTermIds(term.getCode(), listOfNewTermIds, listOfDocIds,
-					    snomedSource, searcher);
-					
-					listOfExistingIds.add(term.getCode().hashCode());
-					
-					listOfDocIds.addAll(tmpListOfDocIds);
-				} else {
-					return;
-				}
-				
-			}
-			
-			listOfNewTerms = createNewTerms(listOfDocIds, searcher, snomedSource, listOfExistingIds);
-			listOfTermsToSave.addAll(listOfNewTerms);
-			
-			if (listOfTermsToSave != null) {
-				saveNewOrUpdatedRefTerms(listOfTermsToSave);
-			}
-			
-			List<ConceptReferenceTerm> sourceRefTermsNew = getConceptReferenceTerms(snomedSource, 0, -1, "code", 1);
-			listOfMappedTerms = createNewMappings(sourceRefTermsNew, searcher, snomedMapType);
-			if (listOfMappedTerms != null) {
-				saveNewOrUpdatedRefTerms(listOfMappedTerms);
-			}
-			
-			reader.close();
-		}
-		catch (IOException e) {
-			log.error("Error Adding Ancestors ", e);
-		}
-		finally {
-			try {
-				FileUtils.cleanDirectory(new File(snomedFileDirectoryLocation));
-				
-			}
-			catch (IOException e) {
-				log.error("Error Adding Ancestors ", e);
-			}
-		}
-		
-	}
-	
-	@Transactional
-	public void addNamesToSnomedCTTerms(String snomedFileDirectory) throws APIException {
-		
-		snomedFileDirectoryLocation = snomedFileDirectory + "/tmpLucene";
-		ConceptService cs = Context.getConceptService();
-		
-		indexSnomedFiles(snomedFileDirectory);
-		
-		ConceptSource snomedSource = cs.getConceptSource(1);
-		
-		List<ConceptReferenceTerm> sourceRefTerms = getConceptReferenceTerms(snomedSource, 0, -1, "code", 1);
-		List<ConceptReferenceTerm> listOfUpdatedTerms = new ArrayList<ConceptReferenceTerm>();
+	public void startManageSnomedCTProcess(String process, String snomedFileDirectory) throws APIException {
 		
 		try {
 			
-			IndexReader reader = DirectoryReader.open(FSDirectory.open(new File(snomedFileDirectoryLocation)));
-			IndexSearcher searcher = new IndexSearcher(reader);
+			snomedIndexFileDirectoryLocation = snomedFileDirectory + "/tmpLucene";
 			
-			listOfUpdatedTerms = addNamesToAllReferenceTerms(sourceRefTerms, searcher);
-			if (listOfUpdatedTerms != null) {
-				saveNewOrUpdatedRefTerms(listOfUpdatedTerms);
+			currentSnomedCTProcess = new ManageSnomedCTProcess(process);
+			currentSnomedCTProcess.setCurrentManageSnomedCTProcessDirectoryLocation(snomedFileDirectory);
+			
+			indexSnomedFiles(snomedFileDirectory);
+			
+			if (process.contains("addSnomedCTNames")) {
+				
+				addNamesToSnomedCTTerms(snomedFileDirectory);
 			}
-			
-			reader.close();
-		}
-		catch (IOException e) {
-			
-			log.error("Error Adding Names ", e);
+			if (process.contains("addSnomedCTAncestors")) {
+				
+				addAncestorsToSnomedCTTerms(snomedFileDirectory);
+			}
+			if (process.contains("addSnomedCTRelationships")) {
+				
+				addRelationshipsToSnomedCTTerms(snomedFileDirectory);
+			}
 		}
 		finally {
 			try {
-				FileUtils.cleanDirectory(new File(snomedFileDirectoryLocation));
+				FileUtils.cleanDirectory(new File(snomedIndexFileDirectoryLocation));
 				
 			}
 			catch (IOException e) {
-				log.error("Error Adding Names ", e);
+				log.error("Error cleaning Lucene Index Directory ", e);
 			}
 		}
 		
@@ -512,9 +408,143 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 		return new FileDownload(errorFilename, contentType, linesShowingIfThereAreErrors.getBytes());
 	}
 	
+	private void addAncestorsToSnomedCTTerms(String snomedFileDirectory) throws APIException {
+		
+		ConceptService cs = Context.getConceptService();
+		
+		ConceptSource snomedSource = cs.getConceptSourceByUuid(ConceptManagementAppsConstants.SNOMED_CT_CONCEPT_SOURCE_UUID);
+		
+		List<ConceptReferenceTerm> sourceRefTerms = getConceptReferenceTerms(snomedSource, 0, -1, "code", 1);
+		List<ConceptReferenceTerm> listOfTermsToSave = new ArrayList<ConceptReferenceTerm>();
+		
+		Set<Long> listOfNewTermIds = new HashSet<Long>();
+		Set<Integer> listOfDocIds = new HashSet<Integer>();
+		Set<Integer> listOfExistingIds = new HashSet<Integer>();
+		Set<ConceptReferenceTerm> listOfNewTerms = new HashSet<ConceptReferenceTerm>();
+		
+		try {
+			IndexReader reader = DirectoryReader.open(FSDirectory.open(new File(snomedIndexFileDirectoryLocation)));
+			IndexSearcher searcher = new IndexSearcher(reader);
+			
+			for (ConceptReferenceTerm term : sourceRefTerms) {
+				if (!getCancelManageSnomedCTProcess()) {
+					Set<Integer> tmpListOfDocIds = new HashSet<Integer>();
+					
+					tmpListOfDocIds = searchIndexesGetAncestorTermIds(term.getCode(), listOfNewTermIds, listOfDocIds,
+					    snomedSource, searcher);
+					
+					listOfExistingIds.add(term.getCode().hashCode());
+					
+					listOfDocIds.addAll(tmpListOfDocIds);
+				} else {
+					return;
+				}
+				
+			}
+			
+			listOfNewTerms = createNewTerms(listOfDocIds, searcher, snomedSource, listOfExistingIds);
+			listOfTermsToSave.addAll(listOfNewTerms);
+			
+			if (listOfTermsToSave != null) {
+				saveNewOrUpdatedRefTerms(listOfTermsToSave);
+			}
+			
+			reader.close();
+		}
+		catch (IOException e) {
+			log.error("Error Adding Ancestors ", e);
+		}
+		finally {
+			try {
+				FileUtils.cleanDirectory(new File(snomedIndexFileDirectoryLocation));
+				
+			}
+			catch (IOException e) {
+				log.error("Error Adding Ancestors ", e);
+			}
+		}
+		
+	}
+	
+	private void addRelationshipsToSnomedCTTerms(String snomedFileDirectory) throws APIException {
+		
+		ConceptService cs = Context.getConceptService();
+		
+		ConceptSource snomedSource = cs.getConceptSourceByUuid(ConceptManagementAppsConstants.SNOMED_CT_CONCEPT_SOURCE_UUID);
+		ConceptMapType snomedMapType = cs
+		        .getConceptMapTypeByUuid(ConceptManagementAppsConstants.SAME_AS_CONCEPT_MAP_TYPE_UUID);
+		
+		List<ConceptReferenceTerm> listOfMappedTerms = new ArrayList<ConceptReferenceTerm>();
+		
+		try {
+			IndexReader reader = DirectoryReader.open(FSDirectory.open(new File(snomedIndexFileDirectoryLocation)));
+			IndexSearcher searcher = new IndexSearcher(reader);
+			
+			List<ConceptReferenceTerm> sourceRefTermsNew = getConceptReferenceTerms(snomedSource, 0, -1, "code", 1);
+			listOfMappedTerms = createNewMappings(sourceRefTermsNew, searcher, snomedMapType);
+			if (listOfMappedTerms != null) {
+				saveNewOrUpdatedRefTerms(listOfMappedTerms);
+			}
+			
+			reader.close();
+		}
+		catch (IOException e) {
+			
+		}
+		finally {
+			try {
+				FileUtils.cleanDirectory(new File(snomedIndexFileDirectoryLocation));
+				
+			}
+			catch (IOException e) {
+				log.error("Error Adding Parents ", e);
+			}
+		}
+		
+	}
+	
+	private void addNamesToSnomedCTTerms(String snomedFileDirectory) throws APIException {
+		
+		ConceptService cs = Context.getConceptService();
+		
+		ConceptSource snomedSource = cs.getConceptSourceByUuid(ConceptManagementAppsConstants.SNOMED_CT_CONCEPT_SOURCE_UUID);
+		
+		List<ConceptReferenceTerm> sourceRefTerms = getConceptReferenceTerms(snomedSource, 0, -1, "code", 1);
+		List<ConceptReferenceTerm> listOfUpdatedTerms = new ArrayList<ConceptReferenceTerm>();
+		
+		try {
+			
+			IndexReader reader = DirectoryReader.open(FSDirectory.open(new File(snomedIndexFileDirectoryLocation)));
+			IndexSearcher searcher = new IndexSearcher(reader);
+			
+			listOfUpdatedTerms = addNamesToAllReferenceTerms(sourceRefTerms, searcher);
+			if (listOfUpdatedTerms != null) {
+				saveNewOrUpdatedRefTerms(listOfUpdatedTerms);
+			}
+			
+			reader.close();
+		}
+		catch (IOException e) {
+			
+			log.error("Error Adding Names ", e);
+		}
+		finally {
+			try {
+				FileUtils.cleanDirectory(new File(snomedIndexFileDirectoryLocation));
+				
+			}
+			catch (IOException e) {
+				log.error("Error Adding Names ", e);
+			}
+		}
+		
+	}
+	
 	private void saveNewOrUpdatedRefTerms(List<ConceptReferenceTerm> listOfTerms) {
 		
 		int batchSize = 0;
+		
+		currentSnomedCTProcess.setCurrentManageSnomedCTProcessNumToProcess(listOfTerms.size());
 		
 		for (ConceptReferenceTerm termToSave : listOfTerms) {
 			if (!getCancelManageSnomedCTProcess()) {
@@ -522,6 +552,8 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 				cs.saveConceptReferenceTerm(termToSave);
 				
 				batchSize++;
+				
+				currentSnomedCTProcess.setCurrentManageSnomedCTProcessNumProcessed(batchSize);
 				
 				if (batchSize % 20 == 0) {
 					
@@ -536,18 +568,18 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 	}
 	
 	private void indexSnomedFiles(String snomedFiles) {
-		if (!cancelManageSnomedCTProcess) {
+		if (!getCancelManageSnomedCTProcess()) {
 			try {
 				
 				File file = new File(snomedFiles);
-				FSDirectory dir = FSDirectory.open(new File(snomedFileDirectoryLocation));
+				FSDirectory dir = FSDirectory.open(new File(snomedIndexFileDirectoryLocation));
 				IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_44, analyzer);
 				
 				for (File f : file.listFiles()) {
 					
 					IndexWriter writer = new IndexWriter(dir, config);
 					
-					if (StringUtils.equalsIgnoreCase(f.getName(), "sct2_Relationship_Full_INT_20130131.txt")) {
+					if (StringUtils.equalsIgnoreCase(f.getName(), RELATIONSHIP_FILE)) {
 						
 						BufferedReader br = new BufferedReader(new FileReader(f));
 						
@@ -558,20 +590,23 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 							if (fileFields[0].length() > 0) {
 								
 							}
-							if (StringUtils.equalsIgnoreCase(fileFields[2], "1")
-							        && StringUtils.equalsIgnoreCase(fileFields[7], "116680003")) {
+							//is term active and an IS-A relationship
+							if (StringUtils.equalsIgnoreCase(fileFields[2], RETIRED_TERM)
+							        && StringUtils.equalsIgnoreCase(fileFields[7], IS_A_RELATIONSHIP)) {
 								
 								Document doc = new Document();
 								
-								doc.add(new StringField("id", fileFields[0], Field.Store.YES));
-								doc.add(new StringField("sourceId", fileFields[4], Field.Store.YES));
-								doc.add(new StringField("destinationId", fileFields[5], Field.Store.YES));
+								//get the row id, the parent term, and the child term
+								doc.add(new StringField(ROW_ID, fileFields[0], Field.Store.YES));
+								doc.add(new StringField(PARENT_TERM, fileFields[4], Field.Store.YES));
+								doc.add(new StringField(CHILD_TERM, fileFields[5], Field.Store.YES));
 								writer.addDocument(doc);
 								
 							}
 						}
+						br.close();
 					}
-					if (StringUtils.equalsIgnoreCase(f.getName(), "sct2_Description_Full-en_INT_20130131.txt")) {
+					if (StringUtils.equalsIgnoreCase(f.getName(), DESCRIPTION_FILE)) {
 						
 						BufferedReader br = new BufferedReader(new FileReader(f));
 						
@@ -579,20 +614,23 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 							
 							String[] fileFields = line.split("\t");
 							
+							//is the term active
 							if (fileFields[0].length() > 0) {
-								if (StringUtils.equalsIgnoreCase(fileFields[2], "1")) {
+								if (StringUtils.equalsIgnoreCase(fileFields[2], RETIRED_TERM)) {
 									
 									Document doc = new Document();
 									
-									doc.add(new StringField("conceptId", fileFields[4], Field.Store.YES));
-									doc.add(new StringField("term", fileFields[7], Field.Store.YES));
-									doc.add(new StringField("effectiveDate", fileFields[1], Field.Store.YES));
+									//get the term id, the name, and the effective date(effective date for finding out if it is the newest)
+									doc.add(new StringField(TERM_ID, fileFields[4], Field.Store.YES));
+									doc.add(new StringField(TERM_NAME, fileFields[7], Field.Store.YES));
+									doc.add(new StringField(EFFECTIVE_DATE, fileFields[1], Field.Store.YES));
 									writer.addDocument(doc);
 									
 								}
 							}
 							
 						}
+						br.close();
 					}
 					
 					writer.close();
@@ -618,7 +656,7 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 		try {
 			
 			TopScoreDocCollector sourceIdCollector = TopScoreDocCollector.create(1000, true);
-			Query sourceIdQuery = new QueryParser(Version.LUCENE_44, "sourceId", analyzer).parse(termId);
+			Query sourceIdQuery = new QueryParser(Version.LUCENE_44, PARENT_TERM, analyzer).parse(termId);
 			searcher.search(sourceIdQuery, sourceIdCollector);
 			ScoreDoc[] hits = sourceIdCollector.topDocs().scoreDocs;
 			
@@ -627,8 +665,8 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 					int docId = hits[i].doc;
 					Document d = searcher.doc(docId);
 					
-					Long id = Long.valueOf(d.get("id")).longValue();
-					String childIdString = d.get("destinationId");
+					Long id = Long.valueOf(d.get(ROW_ID)).longValue();
+					String childIdString = d.get(CHILD_TERM);
 					
 					int listSizeBefore = listOfNewTermIds.size();
 					listOfNewTermIds.add(id);
@@ -654,39 +692,6 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 		
 	}
 	
-	private Set<Integer> searchIndexesGetParentTermIds(String termId, Set<Long> listOfNewTermIds, Set<Integer> listOfDocIds,
-	                                                   ConceptSource conceptSource, IndexSearcher searcher) {
-		if (!getCancelManageSnomedCTProcess()) {
-			try {
-				
-				TopScoreDocCollector sourceIdCollector = TopScoreDocCollector.create(1000, true);
-				Query sourceIdQuery = new QueryParser(Version.LUCENE_44, "sourceId", analyzer).parse(termId);
-				searcher.search(sourceIdQuery, sourceIdCollector);
-				ScoreDoc[] hits = sourceIdCollector.topDocs().scoreDocs;
-				
-				for (int i = 0; i < hits.length; ++i) {
-					
-					int docId = hits[i].doc;
-					Document d = searcher.doc(docId);
-					
-					Long id = Long.valueOf(d.get("id")).longValue();
-					
-					listOfNewTermIds.add(id);
-					listOfDocIds.add(docId);
-					
-				}
-				
-			}
-			catch (Exception e) {
-				e.printStackTrace();
-			}
-			
-			return listOfDocIds;
-		} else {
-			return null;
-		}
-	}
-	
 	private Set<ConceptReferenceTerm> createNewTerms(Set<Integer> listOfDocIds, IndexSearcher searcher,
 	                                                 ConceptSource conceptSource, Set<Integer> listOfExistingIds) {
 		
@@ -699,13 +704,13 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 				try {
 					termIds = searcher.doc(docId.intValue());
 					
-					String termCode = termIds.get("sourceId");
+					String termCode = termIds.get(PARENT_TERM);
 					
 					int beforeSize = listOfAlreadyAddedTerms.size();
-					listOfAlreadyAddedTerms.add(termIds.get("sourceId"));
+					listOfAlreadyAddedTerms.add(termIds.get(PARENT_TERM));
 					int afterSize = listOfAlreadyAddedTerms.size();
 					
-					if (!listOfExistingIds.contains(termIds.get("sourceId").hashCode()) && beforeSize < afterSize) {
+					if (!listOfExistingIds.contains(termIds.get(PARENT_TERM).hashCode()) && beforeSize < afterSize) {
 						ConceptReferenceTerm newChildTerm = new ConceptReferenceTerm();
 						
 						newChildTerm.setCode(termCode);
@@ -716,13 +721,13 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 						
 					}
 					
-					String childTermCode = termIds.get("destinationId");
+					String childTermCode = termIds.get(CHILD_TERM);
 					
 					beforeSize = listOfAlreadyAddedTerms.size();
-					listOfAlreadyAddedTerms.add(termIds.get("destinationId"));
+					listOfAlreadyAddedTerms.add(termIds.get(CHILD_TERM));
 					afterSize = listOfAlreadyAddedTerms.size();
 					
-					if (!listOfExistingIds.contains(termIds.get("destinationId").hashCode()) && beforeSize < afterSize) {
+					if (!listOfExistingIds.contains(termIds.get(CHILD_TERM).hashCode()) && beforeSize < afterSize) {
 						ConceptReferenceTerm newChildTerm = new ConceptReferenceTerm();
 						
 						newChildTerm.setCode(childTermCode);
@@ -764,14 +769,14 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 		Map<String, ConceptReferenceTerm> termHashMap = createConceptReferenceTermCodeHashMap(listOfExistingTerms);
 		
 		try {
-			int iterations = 0;
+			
 			for (ConceptReferenceTerm term : listOfExistingTerms) {
 				if (!getCancelManageSnomedCTProcess()) {
 					boolean mapAdded = false;
 					Set<Long> listOfTermIdsAlreadyMapped = new HashSet<Long>();
 					
 					TopScoreDocCollector sourceIdCollector = TopScoreDocCollector.create(1000, true);
-					Query sourceIdQuery = new QueryParser(Version.LUCENE_44, "sourceId", analyzer).parse(term.getCode());
+					Query sourceIdQuery = new QueryParser(Version.LUCENE_44, PARENT_TERM, analyzer).parse(term.getCode());
 					searcher.search(sourceIdQuery, sourceIdCollector);
 					ScoreDoc[] hits = sourceIdCollector.topDocs().scoreDocs;
 					
@@ -781,11 +786,11 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 						Document termIds = searcher.doc(docId);
 						
 						int beforeSize = listOfTermIdsAlreadyMapped.size();
-						listOfTermIdsAlreadyMapped.add(Long.parseLong(termIds.get("destinationId")));
+						listOfTermIdsAlreadyMapped.add(Long.parseLong(termIds.get(CHILD_TERM)));
 						int afterSize = listOfTermIdsAlreadyMapped.size();
 						
 						if (beforeSize < afterSize) {
-							ConceptReferenceTerm childTerm = termHashMap.get(termIds.get("destinationId"));
+							ConceptReferenceTerm childTerm = termHashMap.get(termIds.get(CHILD_TERM));
 							ConceptReferenceTermMap newMap = new ConceptReferenceTermMap();
 							
 							newMap.setConceptMapType(mapType);
@@ -821,7 +826,7 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 			Document currentTermDoc = null;
 			
 			try {
-				Query termQuery = new QueryParser(Version.LUCENE_44, "conceptId", analyzer).parse(term.getCode());
+				Query termQuery = new QueryParser(Version.LUCENE_44, TERM_ID, analyzer).parse(term.getCode());
 				
 				if (termQuery != null) {
 					
@@ -837,15 +842,15 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 							if (currentTermDoc == null) {
 								
 								currentTermDoc = searcher.doc(docId);
-								currentTermWithName = currentTermDoc.get("term");
+								currentTermWithName = currentTermDoc.get(TERM_NAME);
 								
 							} else {
 								
-								if (Integer.parseInt(d.get("effectiveDate")) > Integer.parseInt(currentTermDoc
-								        .get("effectiveDate"))) {
+								if (Integer.parseInt(d.get(EFFECTIVE_DATE)) > Integer.parseInt(currentTermDoc
+								        .get(EFFECTIVE_DATE))) {
 									
 									currentTermDoc = d;
-									currentTermWithName = d.get("term");
+									currentTermWithName = d.get(TERM_NAME);
 									
 								}
 							}
@@ -877,7 +882,7 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 					String currentTermWithName = null;
 					Document currentTermDoc = null;
 					
-					Query termQuery = new QueryParser(Version.LUCENE_44, "conceptId", analyzer).parse(term.getCode());
+					Query termQuery = new QueryParser(Version.LUCENE_44, TERM_ID, analyzer).parse(term.getCode());
 					
 					if (termQuery != null) {
 						TopScoreDocCollector termCollector = TopScoreDocCollector.create(1000, true);
@@ -893,15 +898,15 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 								if (currentTermDoc == null) {
 									
 									currentTermDoc = searcher.doc(docId);
-									currentTermWithName = currentTermDoc.get("term");
+									currentTermWithName = currentTermDoc.get(TERM_NAME);
 									
 								} else {
 									
-									if (Integer.parseInt(d.get("effectiveDate")) > Integer.parseInt(currentTermDoc
-									        .get("effectiveDate"))) {
+									if (Integer.parseInt(d.get(EFFECTIVE_DATE)) > Integer.parseInt(currentTermDoc
+									        .get(EFFECTIVE_DATE))) {
 										
 										currentTermDoc = d;
-										currentTermWithName = d.get("term");
+										currentTermWithName = d.get(TERM_NAME);
 										
 									}
 								}

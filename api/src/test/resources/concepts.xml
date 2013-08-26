@@ -114,7 +114,7 @@
 	<concept_reference_source concept_source_id="1"
 		name="SNOMED CT" hl7_code="NULL" description="test" creator="1"
 		date_created="2013-06-22 20:51:38" retired="0"
-		uuid="b86ee1fc-0604-4810-i424-5ed972383418" />
+		uuid="1ADDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD" />
 
 	<concept_reference_source concept_source_id="2"
 		name="SNOMED NP" hl7_code="NULL" description="test" creator="1"
@@ -165,6 +165,11 @@
 		concept_reference_term_id="300" concept_map_type_id="2" creator="1"
 		date_created="2013-06-22 20:52:28" concept_id="300"
 		uuid="65fd41b3-300c-4bea-b34p-4f2ee2f2d69g" />
+		
+		<concept_map_type concept_map_type_id="1"
+		name="SAME-AS" creator="1"
+		date_created="2013-06-22 20:52:28"
+		uuid="35543629-7d8c-11e1-909d-c80aa9edcf4e" />
 
 </dataset>
 

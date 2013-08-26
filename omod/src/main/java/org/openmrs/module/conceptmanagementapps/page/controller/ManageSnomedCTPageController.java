@@ -8,6 +8,7 @@ import org.apache.commons.logging.LogFactory;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.appui.UiSessionContext;
 import org.openmrs.module.conceptmanagementapps.api.ConceptManagementAppsService;
+import org.openmrs.module.conceptmanagementapps.api.ManageSnomedCTProcess;
 import org.openmrs.ui.framework.UiUtils;
 import org.openmrs.ui.framework.page.PageModel;
 import org.openmrs.ui.framework.page.PageRequest;
@@ -27,48 +28,84 @@ public class ManageSnomedCTPageController {
 		ConceptManagementAppsService conceptManagementAppsService = (ConceptManagementAppsService) Context
 		        .getService(ConceptManagementAppsService.class);
 		
-		if (StringUtils.equalsIgnoreCase("addAncestors", inputType)) {
+		if (StringUtils.equalsIgnoreCase("refresh", inputType)) {
 			
-			conceptManagementAppsService.setCancelManageSnomedCTProcess(false);
-			conceptManagementAppsService.addAncestorsToSnomedCTTerms(snomedFileDirectoryLocation);
-			model.addAttribute("processRunning", "none");
+			if (conceptManagementAppsService.getCancelManageSnomedCTProcess()) {
+				
+				setValuesForNoProcessRunning(model);
+				
+			} else {
+				
+				setValuesForCurrentProcess(model, conceptManagementAppsService);
+			}
 			
-		}
-		
-		if (StringUtils.equalsIgnoreCase("addParents", inputType)) {
-			
-			conceptManagementAppsService.setCancelManageSnomedCTProcess(false);
-			conceptManagementAppsService.addParentsToSnomedCTTerms(snomedFileDirectoryLocation);
-			model.addAttribute("processRunning", "none");
-			
-		}
-		
-		if (StringUtils.equalsIgnoreCase("addNames", inputType)) {
-			
-			conceptManagementAppsService.setCancelManageSnomedCTProcess(false);
-			conceptManagementAppsService.addNamesToSnomedCTTerms(snomedFileDirectoryLocation);
-			model.addAttribute("processRunning", "none");
-			
-		}
-		if (StringUtils.equalsIgnoreCase("cancel", inputType)) {
+		} else if (StringUtils.equalsIgnoreCase("cancel", inputType)) {
 			
 			conceptManagementAppsService.setCancelManageSnomedCTProcess(true);
-			model.addAttribute("processRunning", "none");
+			
+			setValuesForNoProcessRunning(model);
+			
+		} else {
+			
+			conceptManagementAppsService.setCancelManageSnomedCTProcess(false);
+			conceptManagementAppsService.startManageSnomedCTProcess(inputType, snomedFileDirectoryLocation);
+			conceptManagementAppsService.setCancelManageSnomedCTProcess(true);
+			
+			setValuesForNoProcessRunning(model);
+			
 		}
-
+		
 	}
 	
 	public void get(UiSessionContext sessionContext, PageModel model) throws Exception {
+		
 		ConceptManagementAppsService conceptManagementAppsService = (ConceptManagementAppsService) Context
 		        .getService(ConceptManagementAppsService.class);
-
+		
 		if (conceptManagementAppsService.getCancelManageSnomedCTProcess()) {
-			model.addAttribute("processRunning", "none");
+			
+			setValuesForNoProcessRunning(model);
+			
 		} else {
 			
-			model.addAttribute("processRunning", "processRunning");
-			
+			if (conceptManagementAppsService.getCurrentSnomedCTProcess() != null) {
+				
+				setValuesForCurrentProcess(model, conceptManagementAppsService);
+				
+			} else {
+				
+				setValuesForNoProcessRunning(model);
+				
+			}
 		}
 	}
 	
+	private void setValuesForNoProcessRunning(PageModel model) {
+		
+		model.addAttribute("processRunning", "none");
+		model.addAttribute("processStatus", "");
+		model.addAttribute("dirLocation", "");
+		model.addAttribute("processPercentComplete", "");
+	}
+	
+	private void setValuesForCurrentProcess(PageModel model, ConceptManagementAppsService conceptManagementAppsService) {
+		
+		ManageSnomedCTProcess currentProcess = conceptManagementAppsService.getCurrentSnomedCTProcess();
+		
+		int numToProcess = currentProcess.getCurrentManageSnomedCTProcessNumToProcess();
+		int numProcessed = currentProcess.getCurrentManageSnomedCTProcessNumProcessed();
+		float percentComplete = 0;
+		
+		if (numToProcess > 0) {
+			percentComplete = (float) numProcessed / (float) numToProcess;
+			percentComplete = percentComplete * 100;
+		}
+		
+		model.addAttribute("processStatus", "process running: " + currentProcess.getCurrentManageSnomedCTProcessName()
+		        + " since " + currentProcess.getCurrentManageSnomedCTProcessStartTime());
+		model.addAttribute("processRunning", currentProcess.getCurrentManageSnomedCTProcessName());
+		model.addAttribute("dirLocation", currentProcess.getCurrentManageSnomedCTProcessDirectoryLocation());
+		model.addAttribute("processPercentComplete", Math.round(percentComplete) + "% Complete Processing " + numProcessed
+		        + " of " + numToProcess);
+	}
 }

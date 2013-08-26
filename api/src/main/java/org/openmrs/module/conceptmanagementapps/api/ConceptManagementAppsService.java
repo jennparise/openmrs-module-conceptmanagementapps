@@ -22,7 +22,6 @@ import org.openmrs.ConceptReferenceTerm;
 import org.openmrs.ConceptSource;
 import org.openmrs.api.APIException;
 import org.openmrs.api.OpenmrsService;
-import org.openmrs.api.db.DAOException;
 import org.openmrs.ui.framework.page.FileDownload;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -42,6 +41,12 @@ import org.supercsv.io.ICsvMapWriter;
 
 public interface ConceptManagementAppsService extends OpenmrsService {
 	
+	public void setCancelManageSnomedCTProcess(Boolean cancelProcess);
+	
+	public Boolean getCancelManageSnomedCTProcess();
+	
+	public ManageSnomedCTProcess getCurrentSnomedCTProcess();
+	
 	@Transactional(readOnly = true)
 	public List<Concept> getUnmappedConcepts(ConceptSource conceptSource, List<ConceptClass> classesToInclude);
 	
@@ -49,18 +54,7 @@ public interface ConceptManagementAppsService extends OpenmrsService {
 	public FileDownload uploadSpreadsheet(MultipartFile spreadsheetFile) throws APIException;
 	
 	@Transactional
-	public void addNamesToSnomedCTTerms(String snomedFileDirectory) throws APIException;
-	
-	@Transactional
-	public void addAncestorsToSnomedCTTerms(String snomedFileDirectory) throws APIException;
-	
-	@Transactional
-	public void addParentsToSnomedCTTerms(String snomedFileDirectory) throws APIException;
-	
-	public void setCancelManageSnomedCTProcess(Boolean cancelProcess) throws APIException;
-	
-	public Boolean getCancelManageSnomedCTProcess() throws APIException;
-
+	public void startManageSnomedCTProcess(String process, String dirPath) throws APIException;
 	
 	@Transactional(readOnly = true)
 	public List<ConceptReferenceTerm> getConceptReferenceTerms(ConceptSource specifiedSource, Integer startIndex,
