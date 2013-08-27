@@ -63,6 +63,7 @@ import org.openmrs.api.ConceptService;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.db.DAOException;
 import org.openmrs.api.impl.BaseOpenmrsService;
+import org.openmrs.api.AdministrationService;
 import org.openmrs.module.conceptmanagementapps.ConceptManagementAppsConstants;
 import org.openmrs.module.conceptmanagementapps.api.ConceptManagementAppsService;
 import org.openmrs.module.conceptmanagementapps.api.ManageSnomedCTProcess;
@@ -77,6 +78,7 @@ import org.supercsv.io.CsvMapWriter;
 import org.supercsv.io.ICsvMapReader;
 import org.supercsv.io.ICsvMapWriter;
 import org.supercsv.prefs.CsvPreference;
+import org.openmrs.module.conceptmanagementapps.ConceptManagementAppsProperties;
 
 /**
  * It is a default implementation of {@link ConceptManagementAppsService}.
@@ -412,7 +414,11 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 		
 		ConceptService cs = Context.getConceptService();
 		
-		ConceptSource snomedSource = cs.getConceptSourceByUuid(ConceptManagementAppsConstants.SNOMED_CT_CONCEPT_SOURCE_UUID);
+		ConceptManagementAppsProperties cmap = new ConceptManagementAppsProperties();
+		String snomedSourceUuid = cmap
+		        .getSnomedCTConceptSourceUuidGlobalProperty(ConceptManagementAppsConstants.SNOMED_CT_CONCEPT_SOURCE_UUID_GP);
+		
+		ConceptSource snomedSource = cs.getConceptSourceByUuid(snomedSourceUuid);
 		
 		List<ConceptReferenceTerm> sourceRefTerms = getConceptReferenceTerms(snomedSource, 0, -1, "code", 1);
 		List<ConceptReferenceTerm> listOfTermsToSave = new ArrayList<ConceptReferenceTerm>();
@@ -470,7 +476,11 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 		
 		ConceptService cs = Context.getConceptService();
 		
-		ConceptSource snomedSource = cs.getConceptSourceByUuid(ConceptManagementAppsConstants.SNOMED_CT_CONCEPT_SOURCE_UUID);
+		ConceptManagementAppsProperties cmap = new ConceptManagementAppsProperties();
+		String snomedSourceUuid = cmap
+		        .getSnomedCTConceptSourceUuidGlobalProperty(ConceptManagementAppsConstants.SNOMED_CT_CONCEPT_SOURCE_UUID_GP);
+		
+		ConceptSource snomedSource = cs.getConceptSourceByUuid(snomedSourceUuid);
 		ConceptMapType snomedMapType = cs
 		        .getConceptMapTypeByUuid(ConceptManagementAppsConstants.SAME_AS_CONCEPT_MAP_TYPE_UUID);
 		
@@ -507,7 +517,11 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 		
 		ConceptService cs = Context.getConceptService();
 		
-		ConceptSource snomedSource = cs.getConceptSourceByUuid(ConceptManagementAppsConstants.SNOMED_CT_CONCEPT_SOURCE_UUID);
+		ConceptManagementAppsProperties cmap = new ConceptManagementAppsProperties();
+		String snomedSourceUuid = cmap
+		        .getSnomedCTConceptSourceUuidGlobalProperty(ConceptManagementAppsConstants.SNOMED_CT_CONCEPT_SOURCE_UUID_GP);
+		
+		ConceptSource snomedSource = cs.getConceptSourceByUuid(snomedSourceUuid);
 		
 		List<ConceptReferenceTerm> sourceRefTerms = getConceptReferenceTerms(snomedSource, 0, -1, "code", 1);
 		List<ConceptReferenceTerm> listOfUpdatedTerms = new ArrayList<ConceptReferenceTerm>();

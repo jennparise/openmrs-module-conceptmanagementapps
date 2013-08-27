@@ -107,7 +107,9 @@ function validateForm(inputType) {
         ${ui.message("conceptmanagementapps.managesnomedct.title")}
  </h2>
 
-
+<h3>
+        ${ui.message("conceptmanagementapps.managesnomedct.instructions")}
+</h3>
 <form name="manageSnomedCT" class="simple-form-ui" method="post">
            
                 <div id="showHideDirectoryLocationValidationError" style="display: none">

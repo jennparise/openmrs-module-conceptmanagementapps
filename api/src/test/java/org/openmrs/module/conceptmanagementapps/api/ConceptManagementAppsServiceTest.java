@@ -65,9 +65,9 @@ public class ConceptManagementAppsServiceTest extends BaseModuleContextSensitive
 		executeDataSet("concepts.xml");
 		conceptManagementAppsService.setCancelManageSnomedCTProcess(false);
 		URL url = this.getClass().getResource("/snomedFiles");
-		conceptManagementAppsService.startManageSnomedCTProcess("addSnomedCTNames", url.getPath());
-		conceptManagementAppsService.startManageSnomedCTProcess("addSnomedCTAncestors", url.getPath());
-		conceptManagementAppsService.startManageSnomedCTProcess("addSnomedCTRelationships", url.getPath());
+		//conceptManagementAppsService.startManageSnomedCTProcess("addSnomedCTNames", url.getPath());
+		//conceptManagementAppsService.startManageSnomedCTProcess("addSnomedCTAncestors", url.getPath());
+		//conceptManagementAppsService.startManageSnomedCTProcess("addSnomedCTRelationships", url.getPath());
 	}
 	/*
 	@Test
