@@ -63,8 +63,8 @@ import org.openmrs.api.ConceptService;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.db.DAOException;
 import org.openmrs.api.impl.BaseOpenmrsService;
-import org.openmrs.api.AdministrationService;
 import org.openmrs.module.conceptmanagementapps.ConceptManagementAppsConstants;
+import org.openmrs.module.conceptmanagementapps.ConceptManagementAppsProperties;
 import org.openmrs.module.conceptmanagementapps.api.ConceptManagementAppsService;
 import org.openmrs.module.conceptmanagementapps.api.ManageSnomedCTProcess;
 import org.openmrs.module.conceptmanagementapps.api.db.ConceptManagementAppsDAO;
@@ -78,7 +78,6 @@ import org.supercsv.io.CsvMapWriter;
 import org.supercsv.io.ICsvMapReader;
 import org.supercsv.io.ICsvMapWriter;
 import org.supercsv.prefs.CsvPreference;
-import org.openmrs.module.conceptmanagementapps.ConceptManagementAppsProperties;
 
 /**
  * It is a default implementation of {@link ConceptManagementAppsService}.
@@ -162,6 +161,16 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 	}
 	
 	@Transactional(readOnly = true)
+	public List<ConceptReferenceTermMap> getReferenceTermsChildren(ConceptReferenceTerm currentTerm) throws DAOException {
+		return this.dao.getReferenceTermsChildren(currentTerm);
+	}
+	
+	@Transactional(readOnly = true)
+	public List<ConceptReferenceTermMap> getReferenceTermsParents(ConceptReferenceTerm currentTerm) throws DAOException {
+		return this.dao.getReferenceTermsParents(currentTerm);
+	}
+	
+	@Transactional(readOnly = true)
 	public List<Concept> getUnmappedConcepts(ConceptSource conceptSource, List<ConceptClass> classesToInclude) {
 		
 		return this.dao.getUnmappedConcepts(conceptSource, classesToInclude);
@@ -197,6 +206,93 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 		
 		return this.dao.getCountOfConceptReferenceTermsWithQuery(query, conceptSource, includeRetired);
 		
+	}
+	
+	@Transactional(readOnly = true)
+	public Set<ConceptReferenceTerm> getConceptsParentReferenceTerms(Concept concept) {
+		
+		Collection<ConceptMap> conceptMappings = concept.getConceptMappings();
+		Set<ConceptReferenceTerm> parentTerms = new HashSet<ConceptReferenceTerm>();
+		
+		for (ConceptMap map : conceptMappings) {
+			if (StringUtils.equals(map.getConceptMapType().getUuid(),
+			
+			ConceptManagementAppsConstants.SAME_AS_CONCEPT_MAP_TYPE_UUID)) {
+				Set<ConceptReferenceTermMap> termMaps = map.getConceptReferenceTerm().getConceptReferenceTermMaps();
+				
+				for (ConceptReferenceTermMap termMap : termMaps) {
+					
+					parentTerms.add(termMap.getTermB());
+				}
+			}
+		}
+		return parentTerms;
+	}
+	
+	@Transactional(readOnly = true)
+	public Set<ConceptReferenceTerm> getConceptsChildReferenceTerms(Concept concept) {
+		
+		Collection<ConceptMap> conceptMappings = concept.getConceptMappings();
+		Set<ConceptReferenceTerm> childTerms = new HashSet<ConceptReferenceTerm>();
+		
+		for (ConceptMap map : conceptMappings) {
+			if (StringUtils.equals(map.getConceptMapType().getUuid(),
+			
+			ConceptManagementAppsConstants.SAME_AS_CONCEPT_MAP_TYPE_UUID)) {
+				Set<ConceptReferenceTermMap> termMaps = map.getConceptReferenceTerm().getConceptReferenceTermMaps();
+				
+				for (ConceptReferenceTermMap termMap : termMaps) {
+					
+					childTerms.add(termMap.getTermA());
+				}
+			}
+		}
+		return childTerms;
+	}
+	
+	@Transactional(readOnly = true)
+	public Set<ConceptReferenceTerm> getRefTermChildReferenceTerms(ConceptReferenceTerm currentTerm) {
+		
+		ConceptService conceptService = (ConceptService) Context.getService(ConceptService.class);
+		
+		Set<ConceptReferenceTerm> childTerms = new HashSet<ConceptReferenceTerm>();
+		
+		List<ConceptReferenceTermMap> parentMapTerms = this.dao.getReferenceTermsParents(conceptService
+		        .getConceptReferenceTerm(currentTerm.getId()));
+		
+		for (ConceptReferenceTermMap termMap : parentMapTerms) {
+			
+			if (termMap.getTermB().getId() == currentTerm.getId()
+			        && StringUtils.equals(termMap.getConceptMapType().getUuid(),
+			            ConceptManagementAppsConstants.SAME_AS_CONCEPT_MAP_TYPE_UUID)) {
+				
+				childTerms.add(conceptService.getConceptReferenceTerm(termMap.getTermA().getId()));
+			}
+		}
+		return childTerms;
+	}
+	
+	@Transactional(readOnly = true)
+	public Set<ConceptReferenceTerm> getRefTermParentReferenceTerms(ConceptReferenceTerm currentTerm) {
+		
+		ConceptService conceptService = (ConceptService) Context.getService(ConceptService.class);
+		
+		Set<ConceptReferenceTerm> parentTerms = new HashSet<ConceptReferenceTerm>();
+		
+		List<ConceptReferenceTermMap> childMapTerms = this.dao.getReferenceTermsChildren(conceptService
+		        .getConceptReferenceTerm(currentTerm.getId()));
+		
+		for (ConceptReferenceTermMap termMap : childMapTerms) {
+			
+			if (termMap.getTermA().getId() == currentTerm.getId()
+			        && StringUtils.equals(termMap.getConceptMapType().getUuid(),
+			            ConceptManagementAppsConstants.SAME_AS_CONCEPT_MAP_TYPE_UUID)) {
+				
+				parentTerms.add(conceptService.getConceptReferenceTerm(termMap.getTermB().getId()));
+			}
+		}
+		
+		return parentTerms;
 	}
 	
 	@Transactional

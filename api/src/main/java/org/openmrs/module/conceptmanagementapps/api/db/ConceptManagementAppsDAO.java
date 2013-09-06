@@ -18,6 +18,7 @@ import java.util.List;
 import org.openmrs.Concept;
 import org.openmrs.ConceptClass;
 import org.openmrs.ConceptReferenceTerm;
+import org.openmrs.ConceptReferenceTermMap;
 import org.openmrs.ConceptSource;
 import org.openmrs.api.db.DAOException;
 import org.openmrs.module.conceptmanagementapps.api.ConceptManagementAppsService;
@@ -43,4 +44,8 @@ public interface ConceptManagementAppsDAO {
 	public Integer getCountOfConceptReferenceTermsWithQuery(String query, ConceptSource conceptSource, boolean includeRetired)
 	    throws DAOException;
 	
-}
+	public List<ConceptReferenceTermMap> getReferenceTermsParents(ConceptReferenceTerm currentTerm) throws DAOException;
+	
+	public List<ConceptReferenceTermMap> getReferenceTermsChildren(ConceptReferenceTerm currentTerm) throws DAOException;
+	
+	}

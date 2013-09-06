@@ -32,6 +32,7 @@ import org.hibernate.transform.DistinctRootEntityResultTransformer;
 import org.openmrs.Concept;
 import org.openmrs.ConceptClass;
 import org.openmrs.ConceptReferenceTerm;
+import org.openmrs.ConceptReferenceTermMap;
 import org.openmrs.ConceptSource;
 import org.openmrs.api.APIException;
 import org.openmrs.api.db.DAOException;
@@ -58,6 +59,32 @@ public class HibernateConceptManagementAppsDAO implements ConceptManagementAppsD
 	 */
 	private SessionFactory getSessionFactory() {
 		return sessionFactory;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public List<ConceptReferenceTermMap> getReferenceTermsChildren(ConceptReferenceTerm currentTerm) {
+		
+		Criteria criteria = sessionFactory.getCurrentSession().createCriteria(ConceptReferenceTermMap.class, "term");
+		
+		criteria.add(Restrictions.eq("termA.id", currentTerm.getId()));
+		
+		criteria.setResultTransformer(DistinctRootEntityResultTransformer.INSTANCE);
+		
+		return (List<ConceptReferenceTermMap>) criteria.list();
+		
+	}
+	
+	@SuppressWarnings("unchecked")
+	public List<ConceptReferenceTermMap> getReferenceTermsParents(ConceptReferenceTerm currentTerm) {
+		
+		Criteria criteria = sessionFactory.getCurrentSession().createCriteria(ConceptReferenceTermMap.class, "term");
+		
+		criteria.add(Restrictions.eq("termB.id", currentTerm.getId()));
+		
+		criteria.setResultTransformer(DistinctRootEntityResultTransformer.INSTANCE);
+		
+		return (List<ConceptReferenceTermMap>) criteria.list();
+		
 	}
 	
 	public List<Concept> getUnmappedConcepts(ConceptSource conceptSource, List<ConceptClass> classesToInclude)

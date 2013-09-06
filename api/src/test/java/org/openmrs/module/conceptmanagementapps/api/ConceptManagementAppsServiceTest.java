@@ -17,9 +17,9 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 
 import java.io.PrintWriter;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -28,13 +28,11 @@ import org.openmrs.Concept;
 import org.openmrs.ConceptClass;
 import org.openmrs.ConceptReferenceTerm;
 import org.openmrs.ConceptSource;
-import org.openmrs.api.APIException;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.context.Context;
 import org.openmrs.test.BaseContextSensitiveTest;
 import org.openmrs.test.BaseModuleContextSensitiveTest;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests {@link $ ConceptManagementAppsService} .
@@ -60,30 +58,26 @@ public class ConceptManagementAppsServiceTest extends BaseModuleContextSensitive
 	}
 	
 	@Test
-	public void addNamesToSnomedCTTerms_shouldPassWithoutErrors() throws Exception {
-		conceptManagementAppsService = (ConceptManagementAppsService) Context.getService(ConceptManagementAppsService.class);
-		executeDataSet("concepts.xml");
-		conceptManagementAppsService.setCancelManageSnomedCTProcess(false);
-		URL url = this.getClass().getResource("/snomedFiles");
-		//conceptManagementAppsService.startManageSnomedCTProcess("addSnomedCTNames", url.getPath());
-		//conceptManagementAppsService.startManageSnomedCTProcess("addSnomedCTAncestors", url.getPath());
-		//conceptManagementAppsService.startManageSnomedCTProcess("addSnomedCTRelationships", url.getPath());
-	}
-	/*
-	@Test
-	public void startManageSnomedCTProcess_shouldPassWithoutErrors() throws Exception {
-		
-		//Context.setUserContext(ctx)
-		conceptManagementAppsService = (ConceptManagementAppsService) Context.getService(ConceptManagementAppsService.class);
+	public void getConceptsParentReferenceTerms_returnsConceptsParentReferenceTerms() throws Exception {
 		executeDataSet("concepts.xml");
 		ConceptService cs = Context.getConceptService();
-
-		URL url = this.getClass().getResource("/snomedFiles");
-		conceptManagementAppsService.startManageSnomedCTProcess(Context.getUserContext(),"addSnomedCTNames", "/home/jennparise/snomedFiles");
-		System.out.println("letting me move on");
 		
-	}*/
-	/*
+		Set<ConceptReferenceTerm> refTermList = conceptManagementAppsService.getConceptsParentReferenceTerms(cs.getConcept(225));
+		
+		Assert.assertEquals(0, refTermList.size());
+	}
+	
+	@Test
+	public void getRefTermParentReferenceTerms_returnsRefTermParentReferenceTerms() throws Exception {
+		executeDataSet("concepts.xml");
+		ConceptService cs = Context.getConceptService();
+		
+		Set<ConceptReferenceTerm> refTermList = conceptManagementAppsService.getRefTermParentReferenceTerms(cs.getConceptReferenceTerm(30));
+		
+		Assert.assertEquals(1, refTermList.size());
+		
+	}
+	
 	@Test
 	public void getUnmappedConcepts_getsCorrectNumberOfRows() throws Exception {
 		executeDataSet("concepts.xml");
@@ -146,6 +140,6 @@ public class ConceptManagementAppsServiceTest extends BaseModuleContextSensitive
 		List<Concept> conceptList = new ArrayList<Concept>();
 		conceptList.add(Context.getConceptService().getConcept("300"));
 		conceptManagementAppsService.writeFileWithMissingConceptMappings(conceptList, pw, "same-as", "SNOMED CT");
-	}*/
+	}
 	
 }

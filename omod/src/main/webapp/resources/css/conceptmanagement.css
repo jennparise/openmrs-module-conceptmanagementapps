@@ -1,0 +1,61 @@
+
+div.chooseByHierarchy{
+	
+	border-style: solid;
+	border-width: 2px;
+	border-radius: 15px;
+	padding: 4px;
+	margin-top: 4px;
+	
+}
+div.currentTerm{
+	
+	border-style: solid;
+	border-width: 2px;
+	border-radius: 15px;
+	padding: 4px;
+	margin-top:4 px;
+	background-color: gray;
+}
+button.chooseByHierarchyConcept{
+	
+	font-size: 15px;
+	padding: 1px;
+	margin: 8px;
+	margin: 10px 10px 10px 10px;
+    overflow: hidden;
+	white-space: nowrap;
+	max-width: 550px;
+}
+#nestedlist, #nestedlist ul {
+
+  	list-style-type: none;
+  	margin-left:0;
+  	padding-left:30px;
+  	text-indent: -6px;
+  
+}
+
+/* UL Layer 1 Rules */
+#nestedlist {
+  list-style-image:url(../images/spacer.gif);
+
+}
+
+/* UL Layer 2 Rules */
+#nestedlist ul {
+  list-style-image:url(../images/spacer.gif);
+  margin-top: 3px;
+}
+
+/* UL Layer 3 Rules */
+#nestedlist ul ul {
+  list-style-image:url(../images/spacer.gif);
+
+}
+
+/* UL 4 Rules */
+#nestedlist ul ul ul {
+  list-style-image:url(../images/spacer.gif);
+
+}

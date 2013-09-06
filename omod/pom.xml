@@ -85,6 +85,14 @@
 			<version>${uicommonsVersion}</version>
 			<scope>provided</scope>
 		</dependency>
+
+		<dependency>
+			<groupId>org.openmrs.module</groupId>
+			<artifactId>emrapi-api</artifactId>
+			<version>${emrapiVersion}</version>
+			<scope>provided</scope>
+		</dependency>
+
 		<!-- Apache Commons Upload -->
 		<dependency>
 			<groupId>commons-fileupload</groupId>
@@ -111,6 +119,14 @@
 			<scope>test</scope>
 			<version>${appframeworkVersion}</version>
 		</dependency>
+		
+		
+		  <dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>1.7.1</version>
+  		</dependency>
+  		
 	</dependencies>
 
 	<build>

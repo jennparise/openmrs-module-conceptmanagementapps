@@ -15,13 +15,16 @@ package org.openmrs.module.conceptmanagementapps.api;
 
 import java.io.PrintWriter;
 import java.util.List;
+import java.util.Set;
 
 import org.openmrs.Concept;
 import org.openmrs.ConceptClass;
 import org.openmrs.ConceptReferenceTerm;
+import org.openmrs.ConceptReferenceTermMap;
 import org.openmrs.ConceptSource;
 import org.openmrs.api.APIException;
 import org.openmrs.api.OpenmrsService;
+import org.openmrs.api.db.DAOException;
 import org.openmrs.ui.framework.page.FileDownload;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -78,5 +81,17 @@ public interface ConceptManagementAppsService extends OpenmrsService {
 	@Transactional(readOnly = true)
 	public Integer getCountOfConceptReferenceTermsWithQuery(String query, ConceptSource conceptSource, boolean includeRetired)
 	    throws APIException;
+	
+	@Transactional(readOnly = true)
+	public Set<ConceptReferenceTerm> getConceptsParentReferenceTerms(Concept concept);
+	
+	@Transactional(readOnly = true)
+	public Set<ConceptReferenceTerm> getConceptsChildReferenceTerms(Concept concept) ;
+	
+	@Transactional(readOnly = true)
+	public Set<ConceptReferenceTerm> getRefTermParentReferenceTerms(ConceptReferenceTerm currentTerm);
+	
+	@Transactional(readOnly = true)
+	public Set<ConceptReferenceTerm> getRefTermChildReferenceTerms(ConceptReferenceTerm currentTerm) ;
 	
 }

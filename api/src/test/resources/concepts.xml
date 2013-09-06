@@ -92,6 +92,11 @@
 		retired="0" uuid="0f5812f8-b86f-4909-9927-f8c7fwq3a303" />
 
 	<concept_reference_term
+		concept_reference_term_id="225" concept_source_id="6" name="reftermTest"
+		code="123456" description="test" creator="1" date_created="2013-06-22 20:51:38"
+		retired="0" uuid="0f5812f8-b86f-4909-9927-f8c7fwq3a344" />
+
+	<concept_reference_term
 		concept_reference_term_id="171023" concept_source_id="6" name="refterm1"
 		code="1234" description="test" creator="1" date_created="2013-06-22 20:51:38"
 		retired="0" uuid="0f5812f8-b86f-4909-9927-f8c7f4a3a303" />
@@ -102,8 +107,8 @@
 		retired="0" uuid="0f5812f8-b86l-4909-9927-f8c7f4a3a303" />
 
 	<concept_reference_term
-		concept_reference_term_id="30" concept_source_id="1" name="" code="100005"
-		description="test" creator="1" date_created="2013-06-22 20:51:38"
+		concept_reference_term_id="30" concept_source_id="1" name="mappedTerm"
+		code="100005" description="test" creator="1" date_created="2013-06-22 20:51:38"
 		retired="0" uuid="b80ee1fc-0604-4810-9424-5ed972383418" />
 
 	<concept_reference_term
@@ -141,10 +146,16 @@
 		uuid="65fd41b3-882c-4bea-b34c-4f2ee2f2p69e" concept_reference_term_id="29"
 		concept_map_type_id="1" />
 
-	<concept_reference_map concept_map_id="25"
+	<concept_reference_map concept_map_id="2555"
 		concept_reference_term_id="17103" concept_map_type_id="1" creator="1"
 		date_created="2013-06-22 20:52:28" concept_id="225"
 		uuid="65fd41b3-882c-4bea-b34c-4f2ee2f2d69e" />
+
+	<concept_reference_map concept_map_id="250"
+		concept_reference_term_id="30" concept_map_type_id="1" creator="1"
+		date_created="2013-06-22 20:52:28" concept_id="225"
+		uuid="65fd41b3-882c-4bea-b34c-4f2ee2f2d6fs" />
+
 
 	<concept_reference_map concept_map_id="26"
 		concept_reference_term_id="29" concept_map_type_id="1" creator="1"
@@ -156,7 +167,7 @@
 		date_created="2013-06-22 20:52:28" concept_id="225"
 		uuid="65fd41b3-882c-4bea-b34c-4f2ee2f2d69g" />
 
-	<concept_reference_map concept_map_id="27"
+	<concept_reference_map concept_map_id="28"
 		concept_reference_term_id="17103" concept_map_type_id="1" creator="1"
 		date_created="2013-06-22 20:52:28" concept_id="227"
 		uuid="65fd41b3-882c-4bea-b34p-4f2ee2f2d69g" />
@@ -165,11 +176,56 @@
 		concept_reference_term_id="300" concept_map_type_id="2" creator="1"
 		date_created="2013-06-22 20:52:28" concept_id="300"
 		uuid="65fd41b3-300c-4bea-b34p-4f2ee2f2d69g" />
-		
-		<concept_map_type concept_map_type_id="1"
-		name="SAME-AS" creator="1"
-		date_created="2013-06-22 20:52:28"
-		uuid="35543629-7d8c-11e1-909d-c80aa9edcf4e" />
+
+	<concept_reference_term_map
+		concept_reference_term_map_id="1" term_a_id="227" creator="1"
+		date_created="2013-06-22 20:52:28" term_b_id="225" a_is_to_b_id="1"
+		uuid="65fd41b3-300c-4bea-b34p-4f2ee2f2d69g" />
+
+	<concept_reference_term_map
+		concept_reference_term_map_id="2" term_a_id="225" creator="1"
+		date_created="2013-06-22 20:52:28" term_b_id="175" a_is_to_b_id="1"
+		uuid="65fd41b3-300c-4bea-b34p-4f2ee2f2dfds" />
+
+	<concept_reference_term_map
+		concept_reference_term_map_id="3" term_a_id="227" creator="1"
+		date_created="2013-06-22 20:52:28" term_b_id="225" a_is_to_b_id="1"
+		uuid="65fd41b3-300c-4bea-b34p-4f2er2f2dfds" />
+
+	<concept_reference_term_map
+		concept_reference_term_map_id="4" term_a_id="17103" creator="1"
+		date_created="2013-06-22 20:52:28" term_b_id="225" a_is_to_b_id="1"
+		uuid="65fd41b3-300c-4bea-b34p-4f2ee2f2dfff" />
+
+	<concept_reference_term_map
+		concept_reference_term_map_id="5" term_a_id="30" creator="1"
+		date_created="2013-06-22 20:52:28" term_b_id="225" a_is_to_b_id="1"
+		uuid="65fd41b3-300c-4bea-b34p-4f2ee2f2dsas" />
+
+	<concept_reference_term_map
+		concept_reference_term_map_id="6" term_a_id="30" creator="1"
+		date_created="2013-06-22 20:52:28" term_b_id="225" a_is_to_b_id="2"
+		uuid="65fd41b3-300c-4bea-b34p-4f2ee2fdfsdsas" />
+
+	<concept_reference_term_map
+		concept_reference_term_map_id="65" term_a_id="225" creator="1"
+		date_created="2013-06-22 20:52:28" term_b_id="30" a_is_to_b_id="2"
+		uuid="65fd41b3-300c-4bea-b34p-4f2ee2fdfsddd" />
+
+	<concept_reference_term_map
+		concept_reference_term_map_id="7" term_a_id="225" creator="1"
+		date_created="2013-06-22 20:52:28" term_b_id="30" a_is_to_b_id="1"
+		uuid="65fd41b3-300c-4bea-b34p-4f2dfd2f2dsas" />
+
+	<concept_reference_term_map
+		concept_reference_term_map_id="8" term_a_id="225" creator="1"
+		date_created="2013-06-22 20:52:28" term_b_id="30" a_is_to_b_id="1"
+		uuid="65fd41b3-300c-4bea-b34p-4f2rr2f2dsas" />
+
+	<concept_map_type concept_map_type_id="1" name="SAME-AS"
+		creator="1" date_created="2013-06-22 20:52:28" uuid="35543645-7d8c-11e1-909d-c80aa9edcf4e" />
+
+
 
 </dataset>
 
