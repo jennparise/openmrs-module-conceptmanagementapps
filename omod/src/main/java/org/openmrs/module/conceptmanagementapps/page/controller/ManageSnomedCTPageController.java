@@ -1,5 +1,10 @@
 package org.openmrs.module.conceptmanagementapps.page.controller;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang.StringUtils;
@@ -28,7 +33,7 @@ public class ManageSnomedCTPageController {
 		ConceptManagementAppsService conceptManagementAppsService = (ConceptManagementAppsService) Context
 		        .getService(ConceptManagementAppsService.class);
 		
-		if (StringUtils.equalsIgnoreCase("refresh", inputType)) {
+		if (StringUtils.equalsIgnoreCase("reload", inputType)) {
 			
 			if (conceptManagementAppsService.getCancelManageSnomedCTProcess()) {
 				
@@ -101,8 +106,17 @@ public class ManageSnomedCTPageController {
 			percentComplete = percentComplete * 100;
 		}
 		
-		model.addAttribute("processStatus", "process running: " + currentProcess.getCurrentManageSnomedCTProcessName()
-		        + " since " + currentProcess.getCurrentManageSnomedCTProcessStartTime());
+		Date timeStarted = currentProcess.getCurrentManageSnomedCTProcessStartTime();
+		DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+		String formattedDate = dateFormat.format(timeStarted);
+		
+		long timeStartedMillis = currentProcess.getCurrentManageSnomedCTProcessTimeStartedMilliSecs();
+		long timeNowMillis = System.currentTimeMillis();
+		long timePassed = timeNowMillis - timeStartedMillis;
+		
+		String processStatus =  "Current process: " + currentProcess.getCurrentManageSnomedCTProcessName()
+	        + " </br> Started on " + formattedDate + " Running for " + timePassed/1000 + " seconds.";
+		model.addAttribute("processStatus", processStatus);
 		model.addAttribute("processRunning", currentProcess.getCurrentManageSnomedCTProcessName());
 		model.addAttribute("dirLocation", currentProcess.getCurrentManageSnomedCTProcessDirectoryLocation());
 		model.addAttribute("processPercentComplete", Math.round(percentComplete) + "% Complete Processing " + numProcessed

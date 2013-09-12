@@ -16,7 +16,7 @@ public class ManageSnomedCTProcess {
 	
 	private String currentManageSnomedCTProcessStatus = "";
 	
-	private String currentManageSnomedCTProcessStartTime = "";
+	private Date currentManageSnomedCTProcessStartTime = new Date();
 	
 	private String currentManageSnomedCTProcessDirectoryLocation = "";
 	
@@ -24,14 +24,19 @@ public class ManageSnomedCTProcess {
 	
 	private int currentManageSnomedCTProcessNumToProcess = 0;
 	
+	private long currentManageSnomedCTProcessTimeStartedMilliSecs = 0;
+	
+	
+	
 	public ManageSnomedCTProcess(String processName) {
 		
-		DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+		
 		Date date = new Date();
 		
 		setCurrentManageSnomedCTProcessName(processName);
 		setCurrentManageSnomedCTProcessStatus("starting");
-		setCurrentManageSnomedCTProcessStartTime(dateFormat.format(date));
+		setCurrentManageSnomedCTProcessStartTime(date);
+		setCurrentManageSnomedCTProcessTimeStartedMilliSecs(System.currentTimeMillis());
 	}
 	
 	/**
@@ -46,6 +51,20 @@ public class ManageSnomedCTProcess {
 	 */
 	public String getCurrentManageSnomedCTProcessName() {
 		return currentManageSnomedCTProcessName;
+	}
+	
+	/**
+	 * @param currentManageSnomedCTProcessTimeStartedMilliSecsthe currentManageSnomedCTProcessTimeStartedMilliSecs to set
+	 */
+	public void setCurrentManageSnomedCTProcessTimeStartedMilliSecs(long currentManageSnomedCTProcessTimeStartedMilliSecs) {
+		this.currentManageSnomedCTProcessTimeStartedMilliSecs = currentManageSnomedCTProcessTimeStartedMilliSecs;
+	}
+	
+	/**
+	 * @return currentManageSnomedCTProcessTimeStartedMilliSecs
+	 */
+	public long getCurrentManageSnomedCTProcessTimeStartedMilliSecs() {
+		return currentManageSnomedCTProcessTimeStartedMilliSecs;
 	}
 	
 	/**
@@ -65,14 +84,14 @@ public class ManageSnomedCTProcess {
 	/**
 	 * @param currentManageSnomedCTProcessStartTime the currentManageSnomedCTProcessStartTime to set
 	 */
-	public void setCurrentManageSnomedCTProcessStartTime(String currentManageSnomedCTProcessStartTime) {
+	public void setCurrentManageSnomedCTProcessStartTime(Date currentManageSnomedCTProcessStartTime) {
 		this.currentManageSnomedCTProcessStartTime = currentManageSnomedCTProcessStartTime;
 	}
 	
 	/**
 	 * @return currentManageSnomedCTProcessStartTime
 	 */
-	public String getCurrentManageSnomedCTProcessStartTime() {
+	public Date getCurrentManageSnomedCTProcessStartTime() {
 		return currentManageSnomedCTProcessStartTime;
 	}
 	

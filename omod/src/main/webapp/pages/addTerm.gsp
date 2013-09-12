@@ -66,7 +66,7 @@ function validateForm() {
 
 <form name="addTerm" class="simple-form-ui" method="post">
            
-            <fieldset>
+           
                 <div id="showHideConceptSourceValidationError" style="display: none">
             		<p  style="color:red" class="required">(${ ui.message("emr.formValidation.messages.requiredField") })</p>
             	</div>
@@ -80,9 +80,7 @@ function validateForm() {
 					initialValue: 0
 					]
 				)}
-			</fieldset>
-			           
-            <fieldset>
+				</br></br></br></br>
                 <div id="showHideRefTermCodeValidationError" style="display: none">
             		<p  style="color:red" class="required">(${ ui.message("emr.formValidation.messages.requiredField") })</p>
             	</div>            
@@ -90,21 +88,17 @@ function validateForm() {
 				<label name="refTermCodeId">${ui.message("conceptmanagementapps.addterm.code.label")}</label>
 				<input  type="text" name="refTermCode" id="refTermCodeId"/>
 				</p>
-			</fieldset>
-			           
-            <fieldset>
+
 				<p>
 				<label name="refTermNameId">${ui.message("conceptmanagementapps.addterm.name.label")}</label>
 				<input type="text" name="refTermName" id="refTermNameId"/>
 				</p>
-			</fieldset>
-			           
-            <fieldset>
+
 				<p>
 				<label name="refTermDescriptionId">${ui.message("conceptmanagementapps.addterm.description.label")}</label>
-				<input type="text" name="refTermDescription" id="refTermDescriptionId"/>
+				<textarea name="refTermDescription" id="refTermDescriptionId"></textarea>
 				</p>
-			</fieldset>
+
 			           
             <div id="submit">
             <p style="display: inline"><input type="button" class="confirm" value="Save Reference Term" onclick="javascript:validateForm();"/></p>

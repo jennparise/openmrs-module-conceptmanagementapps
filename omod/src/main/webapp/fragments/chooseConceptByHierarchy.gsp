@@ -15,7 +15,7 @@
     			<ng-autocomplete  remote-data="Wrapper.AutoComplete(request, response)" 
             		min-input="2" restrict="true" 
             		selected-item="selectedItem" 
-            		placeholder="${ ui.message("conceptmanagementapps.chooseconceptgyhierarchy.placeholder") }" ng-model="message" >
+            		placeholder="${ ui.message("conceptmanagementapps.chooseconceptbyhierarchy.placeholder") }" ng-model="message" >
     			</ng-autocomplete><br/>
  			</div> 
 		</fieldset> 

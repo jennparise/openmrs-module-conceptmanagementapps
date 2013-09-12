@@ -29,12 +29,11 @@ ${ ui.includeFragment("uicommons", "validationMessages")}
     var breadcrumbs = [
         { icon: "icon-home", link: '/' + OPENMRS_CONTEXT_PATH + '/index.htm' },
         { label: "${ ui.message("conceptmanagementapps.homepage.title") }", link: "${ ui.pageLink("conceptmanagementapps", "conceptManagementAppsMain") }" },
-        { label: "${ ui.message("conceptmanagementapps.addterm.title") }", link: "${ ui.pageLink("conceptmanagementapps", "addTerm") }" },
         { label: "${ ui.message("conceptmanagementapps.browsereferenceterms.title") }", link: "${ ui.pageLink("conceptmanagementapps", "browseReferenceTermsTable") }" }
     ];
  </script>
 
-
+       <a href="${ ui.pageLink("conceptmanagementapps", "addTerm")}">${ui.message("conceptmanagementapps.addterm.title")}</a>
  <h2>
         ${ui.message("conceptmanagementapps.browsereferenceterms.title")}
  </h2>

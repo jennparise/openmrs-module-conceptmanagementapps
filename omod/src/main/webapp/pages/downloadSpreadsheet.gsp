@@ -73,9 +73,7 @@ function validateForm() {
     <h2>
         ${ui.message("conceptmanagementapps.downloadpage.title")}
     </h2>
-    <h3>
-        ${ui.message("conceptmanagementapps.downloadpage.subtitle")}
-    </h3>
+
       
 <form class="simple-form-ui" name="downloadForm" method="post">
 

@@ -36,6 +36,7 @@ ${ ui.includeFragment("uicommons", "validationMessages")}
 		document.getElementById('addSnomedCTAncestorsId').disabled = true;
 		document.getElementById('showHideAddNames').style.display = "none";
 		document.getElementById('showHideCancelAddNames').style.display = "block";
+		setTimeout(function(){window.location.reload(1);}, 5000);	
 	}
 	if(theProcessRunning === "addSnomedCTRelationships"){
 	
@@ -43,6 +44,7 @@ ${ ui.includeFragment("uicommons", "validationMessages")}
 		document.getElementById('addSnomedCTAncestorsId').disabled = true;
 		document.getElementById('showHideAddRelationships').style.display = "none";
 		document.getElementById('showHideCancelAddRelationships').style.display = "block";
+		setTimeout(function(){window.location.reload(1);}, 5000);
 	}
 	if(theProcessRunning === "addSnomedCTAncestors"){
 	
@@ -50,6 +52,7 @@ ${ ui.includeFragment("uicommons", "validationMessages")}
 		document.getElementById('addSnomedCTRelationshipsId').disabled = true;
 		document.getElementById('showHideAddAncestors').style.display = "none";
 		document.getElementById('showHideCancelAddAncestors').style.display = "block";
+		setTimeout(function(){window.location.reload(1);}, 5000);
 	}
 	
 	function resetButtons(){
@@ -63,15 +66,19 @@ ${ ui.includeFragment("uicommons", "validationMessages")}
 		document.getElementById('showHideCancelAddNames').style.display = "none";
 		document.getElementById('showHideCancelAddRelationships').style.display = "none";
 		document.getElementById('showHideCancelAddAncestors').style.display = "none";
+
 		
 	}
 }
+
+
 function validateForm(inputType) {
 	if(inputType.value=="Cancel"){
 		document.getElementById('inputTypeId').value = inputType.value;
 	}
 	else{
 		document.getElementById('inputTypeId').value = inputType.name;
+		
 	}
 	var directoryLocationErrText = document.getElementById("showHideDirectoryLocationValidationError");
 	var error=0;
@@ -92,8 +99,10 @@ function validateForm(inputType) {
     else 
     { 
     	document.manageSnomedCT.submit();
-    	if(inputType.name=="refresh"){
+    	
+    	if(inputType.name=="reload"){
     		document.getElementById('inputTypeId').value = inputType.name;
+    		window.location.reload(1);
     	}
     	else{
         	inputType.value = "Cancel";
@@ -120,24 +129,30 @@ function validateForm(inputType) {
 					<input  type="text" name="snomedDirectoryLocation" id="snomedDirectoryLocationId" size="35" value="<%= dirLocation.toString() %>"/>
 				</p>
 
-				<div id="showHideRefresh" style="display: block">
 					<p>
-					<input type="button" name="refresh" id="refreshId" value="Refresh" onclick="javascript:validateForm(this);"/>
+					<label>${ui.message("conceptmanagementapps.managesnomedct.reload.label")}</label>
 					</p>
-					<p>
+					<fieldset>
+					
+			 		<p>
+			 		<input type="button" name="reload" id="reloadId" value="Reload" onclick="javascript:validateForm(this);"/>
+ 					</p>
+ 					<div style="background:#D3D3D3">
+ 					<p>
  					<%= processStatus.toString() %>
  					</p>
  					<p>
  					<%= processPercentComplete.toString() %>
- 					</p>
-				</div>
-			           
+ 					</p> 
+ 					</div>
+ 					</fieldset>         
            <fieldset>
-                <legend>
-       	 			${ui.message("conceptmanagementapps.managesnomedct.addnames.title")}
-     			</legend>
+                
      			<div id="showHideAddNames" style="display: none">
 				<p class="left">
+				<label>
+       	 			${ui.message("conceptmanagementapps.managesnomedct.addnames.title")}
+     			</label>
 				<input type="button" name="addSnomedCTNames" id="addSnomedCTNamesId" value="Start Task" onclick="javascript:validateForm(this);"/>
 				</p>
 				</div>
@@ -149,11 +164,12 @@ function validateForm(inputType) {
 			</fieldset>
 			
 			 <fieldset>
-                <legend>
-       	 			${ui.message("conceptmanagementapps.managesnomedct.addancestors.title")}
-     			</legend>
+                
      			<div id="showHideAddAncestors" style="display: none">
 				<p>
+				<label>
+       	 			${ui.message("conceptmanagementapps.managesnomedct.addancestors.title")}
+     			</label>
 				<input type="button" name="addSnomedCTAncestors" id="addSnomedCTAncestorsId" value="Start Task" onclick="javascript:validateForm(this);"/>
 				</p>
 				</div>
@@ -165,11 +181,12 @@ function validateForm(inputType) {
 			</fieldset>
 			
 			 <fieldset>
-                <legend>
-       	 			${ui.message("conceptmanagementapps.managesnomedct.addrelationships.title")}
-     			</legend>
+
      			<div id="showHideAddRelationships"  style="display: none">
 				<p>
+				<label>
+       	 			${ui.message("conceptmanagementapps.managesnomedct.addrelationships.title")}
+     			</label>
 				<input type="button" name="addSnomedCTRelationships" id="addSnomedCTRelationshipsId" value="Start Task" onclick="javascript:validateForm(this);"/>
 				</p>
 				</div>

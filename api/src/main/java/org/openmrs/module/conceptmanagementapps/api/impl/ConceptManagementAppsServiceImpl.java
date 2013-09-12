@@ -69,6 +69,7 @@ import org.openmrs.module.conceptmanagementapps.api.ConceptManagementAppsService
 import org.openmrs.module.conceptmanagementapps.api.ManageSnomedCTProcess;
 import org.openmrs.module.conceptmanagementapps.api.db.ConceptManagementAppsDAO;
 import org.openmrs.ui.framework.page.FileDownload;
+import org.openmrs.util.OpenmrsUtil;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.supercsv.cellprocessor.Optional;
@@ -104,9 +105,9 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 	
 	private static final String EFFECTIVE_DATE = "effectiveDate";
 	
-	private static final String RELATIONSHIP_FILE = "sct2_Relationship_Full_INT_20130131.txt";
+	private static final String RELATIONSHIP_FILE = "sct2_Relationship_Full_INT_";
 	
-	private static final String DESCRIPTION_FILE = "sct2_Description_Full-en_INT_20130131.txt";
+	private static final String DESCRIPTION_FILE = "sct2_Description_Full-en_INT_";
 	
 	private ConceptManagementAppsDAO dao;
 	
@@ -375,7 +376,7 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 		
 		try {
 			
-			snomedIndexFileDirectoryLocation = snomedFileDirectory + "/tmpLucene";
+			snomedIndexFileDirectoryLocation = OpenmrsUtil.getApplicationDataDirectory()+"/tempLucene";
 			
 			currentSnomedCTProcess = new ManageSnomedCTProcess(process);
 			currentSnomedCTProcess.setCurrentManageSnomedCTProcessDirectoryLocation(snomedFileDirectory);
@@ -548,7 +549,7 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 			listOfTermsToSave.addAll(listOfNewTerms);
 			
 			if (listOfTermsToSave != null) {
-				saveNewOrUpdatedRefTerms(listOfTermsToSave);
+				saveNewOrUpdatedRefTerms(listOfTermsToSave, cs);
 			}
 			
 			reader.close();
@@ -589,7 +590,7 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 			List<ConceptReferenceTerm> sourceRefTermsNew = getConceptReferenceTerms(snomedSource, 0, -1, "code", 1);
 			listOfMappedTerms = createNewMappings(sourceRefTermsNew, searcher, snomedMapType);
 			if (listOfMappedTerms != null) {
-				saveNewOrUpdatedRefTerms(listOfMappedTerms);
+				saveNewOrUpdatedRefTerms(listOfMappedTerms, cs);
 			}
 			
 			reader.close();
@@ -629,7 +630,7 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 			
 			listOfUpdatedTerms = addNamesToAllReferenceTerms(sourceRefTerms, searcher);
 			if (listOfUpdatedTerms != null) {
-				saveNewOrUpdatedRefTerms(listOfUpdatedTerms);
+				saveNewOrUpdatedRefTerms(listOfUpdatedTerms, cs);
 			}
 			
 			reader.close();
@@ -650,7 +651,7 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 		
 	}
 	
-	private void saveNewOrUpdatedRefTerms(List<ConceptReferenceTerm> listOfTerms) {
+	private void saveNewOrUpdatedRefTerms(List<ConceptReferenceTerm> listOfTerms, ConceptService cs) {
 		
 		int batchSize = 0;
 		
@@ -658,7 +659,6 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 		
 		for (ConceptReferenceTerm termToSave : listOfTerms) {
 			if (!getCancelManageSnomedCTProcess()) {
-				ConceptService cs = Context.getConceptService();
 				cs.saveConceptReferenceTerm(termToSave);
 				
 				batchSize++;
@@ -689,7 +689,7 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 					
 					IndexWriter writer = new IndexWriter(dir, config);
 					
-					if (StringUtils.equalsIgnoreCase(f.getName(), RELATIONSHIP_FILE)) {
+					if (StringUtils.contains(f.getName(), RELATIONSHIP_FILE)) {
 						
 						BufferedReader br = new BufferedReader(new FileReader(f));
 						
@@ -716,7 +716,7 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 						}
 						br.close();
 					}
-					if (StringUtils.equalsIgnoreCase(f.getName(), DESCRIPTION_FILE)) {
+					if (StringUtils.contains(f.getName(), DESCRIPTION_FILE)) {
 						
 						BufferedReader br = new BufferedReader(new FileReader(f));
 						
@@ -747,7 +747,7 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 				}
 			}
 			catch (FileNotFoundException e) {
-				log.error("Error Indexing Snomed Files ", e);
+				log.error("Error Indexing Snomed: Files File Not Found", e);
 			}
 			catch (IOException e) {
 				log.error("Error Indexing Snomed Files ", e);
