@@ -43,7 +43,17 @@
  	<fieldset>
  	<legend>${ ui.message('conceptmanagementapps.mainpage.missingconceptmappings.title') }</legend>
        <% extensions.each { ext -> %>
-       <% if (ext.id.contains('conceptsMissingMappings')) {%>
+       <% if (ext.id.contains('conceptsMissingMappingsDownload')) {%>
+            <a id="${ htmlSafeId(ext) }" href="/${ contextPath }/${ ext.url }" class="button app big">
+                <% if (ext.icon) { %>
+                   <i class="${ ext.icon }"></i>
+                <% } %>
+                ${ ui.message(ext.label) }
+            </a>
+       <% } %>
+       <% } %>
+       <% extensions.each { ext -> %>
+       <% if (ext.id.contains('conceptsMissingMappingsUpload')) {%>
             <a id="${ htmlSafeId(ext) }" href="/${ contextPath }/${ ext.url }" class="button app big">
                 <% if (ext.icon) { %>
                    <i class="${ ext.icon }"></i>
@@ -57,6 +67,19 @@
        <legend>${ ui.message('conceptmanagementapps.mainpage.importsnomeddistribution.title') }</legend>
        <% extensions.each { ext -> %>
        <% if (ext.id.contains('importSnomedDistribution')) {%>
+            <a id="${ htmlSafeId(ext) }" href="/${ contextPath }/${ ext.url }" class="button app big">
+                <% if (ext.icon) { %>
+                   <i class="${ ext.icon }"></i>
+                <% } %>
+                ${ ui.message(ext.label) }
+            </a>
+       <% } %>
+        <% } %>
+        </fieldset>
+        <fieldset>
+       <legend>${ ui.message('conceptmanagementapps.chooseconceptbyhierarchy.title') }</legend>
+       <% extensions.each { ext -> %>
+       <% if (ext.id.contains('chooseconceptbyhierarchy')) {%>
             <a id="${ htmlSafeId(ext) }" href="/${ contextPath }/${ ext.url }" class="button app big">
                 <% if (ext.icon) { %>
                    <i class="${ ext.icon }"></i>

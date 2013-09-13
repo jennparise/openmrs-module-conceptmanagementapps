@@ -11,13 +11,13 @@ ${ ui.includeFragment("uicommons", "validationMessages")}
     var breadcrumbs = [
         { icon: "icon-home", link: '/' + OPENMRS_CONTEXT_PATH + '/index.htm' },
         { label: "${ ui.message("conceptmanagementapps.homepage.title") }", link: "${ ui.pageLink("conceptmanagementapps", "conceptManagementAppsMain") }" },
-        { label: "${ ui.message("conceptmanagementapps.chooseconceptgyhierarchy.title") }", link: "${ ui.pageLink("conceptmanagementapps", "chooseconceptgyhierarchy") }" }
+        { label: "${ ui.message("conceptmanagementapps.chooseconceptbyhierarchy.title") }", link: "${ ui.pageLink("conceptmanagementapps", "chooseConceptByHierarchy") }" }
     ];
  </script>
 
 
  <h2>
-        ${ui.message("conceptmanagementapps.chooseconceptgyhierarchy.title")}
+        ${ui.message("conceptmanagementapps.chooseconceptbyhierarchy.title")}
  </h2>
 
 

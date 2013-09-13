@@ -8,16 +8,16 @@
 			"extensionPointId": "org.openmrs.conceptmanagementapps.homepageLink",
 			"type": "link",
 			"label": "conceptmanagementapps.downloadpage.title",
-			"url": "conceptmanagementapps/downloadSpreadsheet.page",
-			"order": 1
+			"url": "conceptmanagementapps/downloadSpreadsheet.page"
+
 			},
 			{
 			"id": "conceptmanagementapps.conceptsMissingMappingsUpload",
 			"extensionPointId": "org.openmrs.conceptmanagementapps.homepageLink",
 			"type": "link",
 			"label": "conceptmanagementapps.uploadpage.title",
-			"url": "conceptmanagementapps/uploadSpreadsheet.page",
-			"order": 2
+			"url": "conceptmanagementapps/uploadSpreadsheet.page"
+
 			}
 		]
 	}

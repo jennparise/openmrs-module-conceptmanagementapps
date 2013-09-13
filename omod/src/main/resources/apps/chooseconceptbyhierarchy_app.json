@@ -1,0 +1,16 @@
+[
+	{
+		"id": "conceptmanagementapps.chooseconceptbyhierarchy",
+		"description": "${project.parent.artifactId}.description",
+		"extensions": [
+			{
+			"id": "conceptmanagementapps.chooseconceptbyhierarchy",
+			"extensionPointId": "org.openmrs.conceptmanagementapps.homepageLink",
+			"type": "link",
+			"label": "conceptmanagementapps.chooseconceptbyhierarchy.title",
+			"url": "conceptmanagementapps/mainPageChooseConceptByHierarchy.page"
+
+			}
+		]
+	}
+]
