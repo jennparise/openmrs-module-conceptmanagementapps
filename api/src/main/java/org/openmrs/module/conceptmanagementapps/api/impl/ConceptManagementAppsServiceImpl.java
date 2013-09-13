@@ -372,28 +372,38 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 	}
 	
 	@Transactional
-	public void startManageSnomedCTProcess(String process, String snomedFileDirectory) throws APIException {
+	public void startManageSnomedCTProcess(String process, String snomedFileDirectory, ConceptSource snomedSource)
+	    throws APIException {
 		
 		try {
 			
-			snomedIndexFileDirectoryLocation = OpenmrsUtil.getApplicationDataDirectory()+"/tempLucene";
+			snomedIndexFileDirectoryLocation = OpenmrsUtil.getApplicationDataDirectory() + "/tempLucene";
 			
 			currentSnomedCTProcess = new ManageSnomedCTProcess(process);
 			currentSnomedCTProcess.setCurrentManageSnomedCTProcessDirectoryLocation(snomedFileDirectory);
+			
+			ConceptManagementAppsProperties cmap = new ConceptManagementAppsProperties();
+			String snomedSourceUuid;
+			if (snomedSource != null) {
+				snomedSourceUuid = snomedSource.getUuid();
+			} else {
+				snomedSourceUuid = cmap
+				        .getSnomedCTConceptSourceUuidGlobalProperty(ConceptManagementAppsConstants.SNOMED_CT_CONCEPT_SOURCE_UUID_GP);
+			}
 			
 			indexSnomedFiles(snomedFileDirectory);
 			
 			if (process.contains("addSnomedCTNames")) {
 				
-				addNamesToSnomedCTTerms(snomedFileDirectory);
+				addNamesToSnomedCTTerms(snomedFileDirectory, snomedSourceUuid);
 			}
 			if (process.contains("addSnomedCTAncestors")) {
 				
-				addAncestorsToSnomedCTTerms(snomedFileDirectory);
+				addAncestorsToSnomedCTTerms(snomedFileDirectory, snomedSourceUuid);
 			}
 			if (process.contains("addSnomedCTRelationships")) {
 				
-				addRelationshipsToSnomedCTTerms(snomedFileDirectory);
+				addRelationshipsToSnomedCTTerms(snomedFileDirectory, snomedSourceUuid);
 			}
 		}
 		finally {
@@ -507,13 +517,9 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 		return new FileDownload(errorFilename, contentType, linesShowingIfThereAreErrors.getBytes());
 	}
 	
-	private void addAncestorsToSnomedCTTerms(String snomedFileDirectory) throws APIException {
+	private void addAncestorsToSnomedCTTerms(String snomedFileDirectory, String snomedSourceUuid) throws APIException {
 		
 		ConceptService cs = Context.getConceptService();
-		
-		ConceptManagementAppsProperties cmap = new ConceptManagementAppsProperties();
-		String snomedSourceUuid = cmap
-		        .getSnomedCTConceptSourceUuidGlobalProperty(ConceptManagementAppsConstants.SNOMED_CT_CONCEPT_SOURCE_UUID_GP);
 		
 		ConceptSource snomedSource = cs.getConceptSourceByUuid(snomedSourceUuid);
 		
@@ -569,13 +575,9 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 		
 	}
 	
-	private void addRelationshipsToSnomedCTTerms(String snomedFileDirectory) throws APIException {
+	private void addRelationshipsToSnomedCTTerms(String snomedFileDirectory, String snomedSourceUuid) throws APIException {
 		
 		ConceptService cs = Context.getConceptService();
-		
-		ConceptManagementAppsProperties cmap = new ConceptManagementAppsProperties();
-		String snomedSourceUuid = cmap
-		        .getSnomedCTConceptSourceUuidGlobalProperty(ConceptManagementAppsConstants.SNOMED_CT_CONCEPT_SOURCE_UUID_GP);
 		
 		ConceptSource snomedSource = cs.getConceptSourceByUuid(snomedSourceUuid);
 		ConceptMapType snomedMapType = cs
@@ -610,13 +612,9 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 		
 	}
 	
-	private void addNamesToSnomedCTTerms(String snomedFileDirectory) throws APIException {
+	private void addNamesToSnomedCTTerms(String snomedFileDirectory, String snomedSourceUuid) throws APIException {
 		
 		ConceptService cs = Context.getConceptService();
-		
-		ConceptManagementAppsProperties cmap = new ConceptManagementAppsProperties();
-		String snomedSourceUuid = cmap
-		        .getSnomedCTConceptSourceUuidGlobalProperty(ConceptManagementAppsConstants.SNOMED_CT_CONCEPT_SOURCE_UUID_GP);
 		
 		ConceptSource snomedSource = cs.getConceptSourceByUuid(snomedSourceUuid);
 		

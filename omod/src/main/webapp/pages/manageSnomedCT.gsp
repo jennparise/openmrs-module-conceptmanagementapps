@@ -8,6 +8,16 @@
     ui.includeJavascript("conceptmanagementapps", "fourButtonPagination.js");
     
     ui.includeCss("conceptmanagementapps", "../css/dataTables.css");
+    
+        def sourceListMap=[]
+    sourceListMap2 = [label: "Browse All", value: 0]
+    sourceListMap << sourceListMap2
+	sourceList.each { sourcelist ->
+		sourceListMap2 = [label: sourcelist.name, value: sourcelist.id]
+		sourceListMap << sourceListMap2
+
+	}
+	def sourceid = sourceId;
 
 %>
 
@@ -145,7 +155,18 @@ function validateForm(inputType) {
  					<%= processPercentComplete.toString() %>
  					</p> 
  					</div>
- 					</fieldset>         
+ 					</fieldset>  
+ 					<fieldset>        
+					${ ui.includeFragment("uicommons", "field/dropDown", [
+						label: ui.message("conceptmanagementapps.browsereferenceterms.select.source.label"),
+						formFieldName: "sourceList",
+						options: sourceListMap,
+						maximumSize: 1,
+						left: true,
+						initialValue: sourceid
+					]
+					)}
+			</fieldset>    
            <fieldset>
                 
      			<div id="showHideAddNames" style="display: none">
@@ -203,5 +224,5 @@ function validateForm(inputType) {
 
 <script type="text/javascript">
 window.onload=showHideValues();
-
- </script>
+ 
+</script>

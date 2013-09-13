@@ -41,7 +41,7 @@ ${ ui.includeFragment("uicommons", "validationMessages")}
 
 ${ ui.includeFragment("conceptmanagementapps", "browseTableOfReferenceTerms")}
 <fieldset>
-<div id="demo">
+<div id="browser">
  
 
  </div>

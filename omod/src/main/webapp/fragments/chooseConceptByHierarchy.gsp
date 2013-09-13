@@ -4,6 +4,8 @@
     ui.includeJavascript("conceptmanagementapps", "chooseConceptByHierarchy-angular.js");
     ui.includeJavascript("conceptmanagementapps", "angular-resource.min.js");
     ui.includeCss("conceptmanagementapps", "../css/conceptmanagement.css");
+    
+    
 %>
 
 <div id="searchConceptApp">

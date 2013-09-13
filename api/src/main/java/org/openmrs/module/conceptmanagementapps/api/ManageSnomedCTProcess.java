@@ -1,14 +1,6 @@
 package org.openmrs.module.conceptmanagementapps.api;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Date;
-
-import org.openmrs.api.ConceptService;
-import org.openmrs.api.context.UserContext;
-import org.openmrs.module.conceptmanagementapps.api.ConceptManagementAppsService;
-import org.openmrs.module.conceptmanagementapps.api.impl.ConceptManagementAppsServiceImpl;
-import org.springframework.transaction.annotation.Transactional;
 
 public class ManageSnomedCTProcess {
 	
@@ -26,10 +18,7 @@ public class ManageSnomedCTProcess {
 	
 	private long currentManageSnomedCTProcessTimeStartedMilliSecs = 0;
 	
-	
-	
 	public ManageSnomedCTProcess(String processName) {
-		
 		
 		Date date = new Date();
 		
@@ -54,7 +43,8 @@ public class ManageSnomedCTProcess {
 	}
 	
 	/**
-	 * @param currentManageSnomedCTProcessTimeStartedMilliSecsthe currentManageSnomedCTProcessTimeStartedMilliSecs to set
+	 * @param currentManageSnomedCTProcessTimeStartedMilliSecsthe
+	 *            currentManageSnomedCTProcessTimeStartedMilliSecs to set
 	 */
 	public void setCurrentManageSnomedCTProcessTimeStartedMilliSecs(long currentManageSnomedCTProcessTimeStartedMilliSecs) {
 		this.currentManageSnomedCTProcessTimeStartedMilliSecs = currentManageSnomedCTProcessTimeStartedMilliSecs;

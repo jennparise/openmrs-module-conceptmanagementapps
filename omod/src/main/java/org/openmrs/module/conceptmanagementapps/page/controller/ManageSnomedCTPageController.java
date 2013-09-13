@@ -2,16 +2,20 @@ package org.openmrs.module.conceptmanagementapps.page.controller;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.openmrs.ConceptSource;
+import org.openmrs.api.ConceptService;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.appui.UiSessionContext;
+import org.openmrs.module.conceptmanagementapps.ConceptManagementAppsConstants;
+import org.openmrs.module.conceptmanagementapps.ConceptManagementAppsProperties;
 import org.openmrs.module.conceptmanagementapps.api.ConceptManagementAppsService;
 import org.openmrs.module.conceptmanagementapps.api.ManageSnomedCTProcess;
 import org.openmrs.ui.framework.UiUtils;
@@ -25,8 +29,13 @@ public class ManageSnomedCTPageController {
 	
 	protected final Log log = LogFactory.getLog(this.getClass());
 	
-	public void post(@RequestParam("snomedDirectoryLocation") String snomedFileDirectoryLocation, UiUtils ui,
+	public void post(@RequestParam("snomedDirectoryLocation") String snomedFileDirectoryLocation,
+	                 @RequestParam(value = "sourceList", required = false) String[] sourceId, UiUtils ui,
 	                 PageRequest pageRequest, HttpServletRequest request, PageModel model) {
+		
+		ConceptService conceptService = Context.getConceptService();
+
+		ConceptSource snomedSource = conceptService.getConceptSource(Integer.parseInt(sourceId[0]));
 		
 		String inputType = request.getParameter("inputType");
 		
@@ -53,7 +62,7 @@ public class ManageSnomedCTPageController {
 		} else {
 			
 			conceptManagementAppsService.setCancelManageSnomedCTProcess(false);
-			conceptManagementAppsService.startManageSnomedCTProcess(inputType, snomedFileDirectoryLocation);
+			conceptManagementAppsService.startManageSnomedCTProcess(inputType, snomedFileDirectoryLocation, snomedSource);
 			conceptManagementAppsService.setCancelManageSnomedCTProcess(true);
 			
 			setValuesForNoProcessRunning(model);
@@ -66,6 +75,21 @@ public class ManageSnomedCTPageController {
 		
 		ConceptManagementAppsService conceptManagementAppsService = (ConceptManagementAppsService) Context
 		        .getService(ConceptManagementAppsService.class);
+		
+		List<ConceptSource> sourceList = Context.getConceptService().getAllConceptSources();
+		int sourceId = 0;
+		
+		ConceptManagementAppsProperties cmap = new ConceptManagementAppsProperties();
+		String snomedSourceUuid = cmap
+		        .getSnomedCTConceptSourceUuidGlobalProperty(ConceptManagementAppsConstants.SNOMED_CT_CONCEPT_SOURCE_UUID_GP);
+		for (ConceptSource source : sourceList) {
+			
+			if (StringUtils.equals(source.getUuid(), snomedSourceUuid)) {
+				sourceId = source.getId();
+			}
+		}
+		model.addAttribute("sourceList", sourceList);
+		model.addAttribute("sourceId", sourceId);
 		
 		if (conceptManagementAppsService.getCancelManageSnomedCTProcess()) {
 			
@@ -114,8 +138,8 @@ public class ManageSnomedCTPageController {
 		long timeNowMillis = System.currentTimeMillis();
 		long timePassed = timeNowMillis - timeStartedMillis;
 		
-		String processStatus =  "Current process: " + currentProcess.getCurrentManageSnomedCTProcessName()
-	        + " </br> Started on " + formattedDate + " Running for " + timePassed/1000 + " seconds.";
+		String processStatus = "Current process: " + currentProcess.getCurrentManageSnomedCTProcessName()
+		        + " </br> Started on " + formattedDate + " Running for " + timePassed / 1000 + " seconds.";
 		model.addAttribute("processStatus", processStatus);
 		model.addAttribute("processRunning", currentProcess.getCurrentManageSnomedCTProcessName());
 		model.addAttribute("dirLocation", currentProcess.getCurrentManageSnomedCTProcessDirectoryLocation());

@@ -27,8 +27,8 @@
 jQuery(function() {
 jQuery('[name=sourceList]').change(function () {
 	var actionUrl='${ ui.actionLink("conceptmanagementapps", "browseTableOfReferenceTerms", "retrieveTableData") }';
-	jQuery('#demo').html( '<table cellpadding="0" cellspacing="0" border="0" class="display" id="example"></table>' );
-    jQuery('#example').dataTable( {
+	jQuery('#browser').html( '<table cellpadding="0" cellspacing="0" border="0" class="display" id="browserTable"></table>' );
+    jQuery('#browserTable').dataTable( {
     	"iDisplayLength": 25,
     	"bProcessing": true,
        	"bServerSide": true,
@@ -59,8 +59,8 @@ jQuery('[name=sourceList]').change(function () {
 jQuery(function() {
 
 	var actionUrl='${ ui.actionLink("conceptmanagementapps", "browseTableOfReferenceTerms", "retrieveTableData") }';
-	jQuery('#demo').html( '<table cellpadding="0" cellspacing="0" border="0" class="display" id="example"></table>' );
-    jQuery('#example').dataTable( {
+	jQuery('#browser').html( '<table cellpadding="0" cellspacing="0" border="0" class="display" id="browserTable"></table>' );
+    jQuery('#browserTable').dataTable( {
     	"iDisplayLength": 25,
     	"bProcessing": true,
        	"bServerSide": true,
