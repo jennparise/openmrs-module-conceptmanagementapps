@@ -847,7 +847,7 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 			}
 			catch (FileNotFoundException e) {
 				log.error("Error Indexing Snomed Files: File Not Found", e);
-				throw new FileNotFoundException("Error finding SNOMED CT files. Please check the path. "+e);
+				throw new FileNotFoundException("Error finding SNOMED CT files. Please check the path. " + e);
 				
 			}
 			catch (IOException e) {
