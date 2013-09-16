@@ -62,7 +62,8 @@ public class ConceptManagementAppsServiceTest extends BaseModuleContextSensitive
 		executeDataSet("concepts.xml");
 		ConceptService cs = Context.getConceptService();
 		
-		Set<ConceptReferenceTerm> refTermList = conceptManagementAppsService.getConceptsParentReferenceTerms(cs.getConcept(225));
+		Set<ConceptReferenceTerm> refTermList = conceptManagementAppsService.getConceptsParentReferenceTerms(cs
+		        .getConcept(225));
 		
 		Assert.assertEquals(0, refTermList.size());
 	}
@@ -72,7 +73,8 @@ public class ConceptManagementAppsServiceTest extends BaseModuleContextSensitive
 		executeDataSet("concepts.xml");
 		ConceptService cs = Context.getConceptService();
 		
-		Set<ConceptReferenceTerm> refTermList = conceptManagementAppsService.getRefTermParentReferenceTerms(cs.getConceptReferenceTerm(30));
+		Set<ConceptReferenceTerm> refTermList = conceptManagementAppsService.getRefTermParentReferenceTerms(cs
+		        .getConceptReferenceTerm(30));
 		
 		Assert.assertEquals(1, refTermList.size());
 		
@@ -92,15 +94,15 @@ public class ConceptManagementAppsServiceTest extends BaseModuleContextSensitive
 		List<Concept> conceptList = conceptManagementAppsService.getUnmappedConcepts(new ConceptSource(sourceId),
 		    classesToInclude);
 		
-		Assert.assertEquals(7, conceptList.size());
+		Assert.assertEquals(6, conceptList.size());
 	}
 	
 	@Test
 	public void getConceptReferenceTerms_getsCorrectNumberOfRows() throws Exception {
 		executeDataSet("concepts.xml");
 		conceptManagementAppsService = (ConceptManagementAppsService) Context.getService(ConceptManagementAppsService.class);
-		List<ConceptReferenceTerm> refTermList = conceptManagementAppsService.getConceptReferenceTerms(null, 0, 5,
-		    "conceptSource", 1);
+		List<ConceptReferenceTerm> refTermList = conceptManagementAppsService
+		        .getConceptReferenceTermsWithSpecifiedSourceIfIncluded(null, 0, 5, "conceptSource", 1);
 		
 		Assert.assertEquals(5, refTermList.size());
 	}

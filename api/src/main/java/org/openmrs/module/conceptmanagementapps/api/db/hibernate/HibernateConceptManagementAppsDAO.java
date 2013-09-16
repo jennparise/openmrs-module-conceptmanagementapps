@@ -21,7 +21,6 @@ import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
-import org.hibernate.Query;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.MatchMode;
@@ -31,6 +30,7 @@ import org.hibernate.criterion.Restrictions;
 import org.hibernate.transform.DistinctRootEntityResultTransformer;
 import org.openmrs.Concept;
 import org.openmrs.ConceptClass;
+import org.openmrs.ConceptMap;
 import org.openmrs.ConceptReferenceTerm;
 import org.openmrs.ConceptReferenceTermMap;
 import org.openmrs.ConceptSource;
@@ -61,6 +61,9 @@ public class HibernateConceptManagementAppsDAO implements ConceptManagementAppsD
 		return sessionFactory;
 	}
 	
+	/**
+	 * @see org.openmrs.module.conceptmanagementapps.api.db.ConceptManagementAppsDAO#getReferenceTermsChildren(org.openmrs.ConceptReferenceTerm)
+	 */
 	@SuppressWarnings("unchecked")
 	public List<ConceptReferenceTermMap> getReferenceTermsChildren(ConceptReferenceTerm currentTerm) {
 		
@@ -74,6 +77,9 @@ public class HibernateConceptManagementAppsDAO implements ConceptManagementAppsD
 		
 	}
 	
+	/**
+	 * @see org.openmrs.module.conceptmanagementapps.api.db.ConceptManagementAppsDAO#getReferenceTermsParents(org.openmrs.ConceptReferenceTerm)
+	 */
 	@SuppressWarnings("unchecked")
 	public List<ConceptReferenceTermMap> getReferenceTermsParents(ConceptReferenceTerm currentTerm) {
 		
@@ -87,34 +93,55 @@ public class HibernateConceptManagementAppsDAO implements ConceptManagementAppsD
 		
 	}
 	
+	/**
+	 * Find concepts not mapped to specified concept source
+	 */
 	public List<Concept> getUnmappedConcepts(ConceptSource conceptSource, List<ConceptClass> classesToInclude)
 	    throws DAOException {
 		
-		List<Concept> conceptsWithNoMappings = getConceptsWithNoMappings(classesToInclude);
-		List<Concept> conceptsWithOtherMappings = getConceptsWithMappingsButNotToThisSource(conceptSource, classesToInclude);
+		Set<Concept> allConceptsMappedToOurSource = getConceptsWithMappingsToThisSource(conceptSource);
+		List<Concept> partiallyFilteredConceptList = getConceptsNotRetiredWithDesiredClasses(conceptSource, classesToInclude);
 		
-		List<Concept> allConceptsNotMappedToOurSource = conceptsWithOtherMappings;
-		allConceptsNotMappedToOurSource.addAll(conceptsWithNoMappings);
+		List<Concept> fullyFilteredConceptList = new ArrayList<Concept>();
 		
-		return filterUnique((List<Concept>) allConceptsNotMappedToOurSource);
-		
+		//filter out concepts mapped to our source
+		for (Concept concept : partiallyFilteredConceptList) {
+			
+			//if the concept does not have a mapping to our desired source then add it to the list to return
+			if (!allConceptsMappedToOurSource.contains(concept)) {
+				fullyFilteredConceptList.add(concept);
+			}
+			
+		}
+		return fullyFilteredConceptList;
 	}
 	
+	/**
+	 * Find concepts mapped to specified concept source
+	 */
 	@SuppressWarnings("unchecked")
-	private List<Concept> getConceptsWithMappingsButNotToThisSource(ConceptSource conceptSource,
-	                                                                List<ConceptClass> classesToInclude) {
-		Criteria criteria = sessionFactory.getCurrentSession().createCriteria(Concept.class);
-		Criteria conceptMapCrit = sessionFactory.getCurrentSession().createCriteria(Concept.class, "concept");
+	private Set<Concept> getConceptsWithMappingsToThisSource(ConceptSource conceptSource) {
 		
-		conceptMapCrit.createAlias("conceptMappings", "conceptMappings");
-		conceptMapCrit.createAlias("conceptMappings.conceptReferenceTerm", "term");
+		Criteria conceptMapCrit = sessionFactory.getCurrentSession().createCriteria(ConceptMap.class, "concept");
+		
+		conceptMapCrit.createAlias("conceptReferenceTerm", "term");
 		
 		conceptMapCrit.add(Restrictions.eq("term.conceptSource", conceptSource));
 		
-		criteria.createAlias("conceptMappings", "conceptMappings");
-		
-		//we don't want any mappings that have a concept which has a mapping to our source
-		criteria.add(Restrictions.not(Restrictions.in("conceptMappings.concept", (List<Concept>) conceptMapCrit.list())));
+		Set<Concept> mappedConcept = new HashSet<Concept>();
+		for (ConceptMap conceptMap : (List<ConceptMap>) conceptMapCrit.list()) {
+			mappedConcept.add(conceptMap.getConcept());
+		}
+		return mappedConcept;
+	}
+	
+	/**
+	 * Find concepts not retired with desired classes
+	 */
+	@SuppressWarnings("unchecked")
+	private List<Concept> getConceptsNotRetiredWithDesiredClasses(ConceptSource conceptSource,
+	                                                              List<ConceptClass> classesToInclude) {
+		Criteria criteria = sessionFactory.getCurrentSession().createCriteria(Concept.class);
 		
 		// ignore retired concepts
 		criteria.add(Restrictions.eq("retired", false));
@@ -131,60 +158,20 @@ public class HibernateConceptManagementAppsDAO implements ConceptManagementAppsD
 		
 		// we only want distinct concepts
 		criteria.setResultTransformer(DistinctRootEntityResultTransformer.INSTANCE);
+		
 		return (List<Concept>) criteria.list();
 		
 	}
 	
-	private List<Concept> filterUnique(List<Concept> input) {
-		Set<Integer> already = new HashSet<Integer>();
-		List<Concept> unique = new ArrayList<Concept>();
-		for (Concept candidate : input) {
-			if (already.contains(candidate.getId())) {
-				continue;
-			} else {
-				already.add(candidate.getId());
-				unique.add(candidate);
-			}
-		}
-		return unique;
-	}
-	
-	@SuppressWarnings("unchecked")
-	private List<Concept> getConceptsWithNoMappings(List<ConceptClass> classesToInclude) {
-		
-		//we also want all concepts with out a mapping at all because that also means it is not mapped to our source
-		String hql = "";
-		hql += "select distinct concept";
-		hql += " from Concept as concept";
-		hql += " left join concept.conceptMappings as conceptMappings where conceptMappings is NULL";
-		hql += " and";
-		hql += " concept.retired = false";
-		hql += " and";
-		
-		int i = 1;
-		// only want concepts with the following conceptClass(s)
-		for (ConceptClass conceptClass : classesToInclude) {
-			
-			if (i < classesToInclude.size()) {
-				hql += " concept.conceptClass.conceptClassId=" + conceptClass.getConceptClassId();
-				hql += " or";
-				
-			} else {
-				hql += " concept.conceptClass.conceptClassId=" + conceptClass.getConceptClassId();
-			}
-			i++;
-		}
-		
-		Query query = sessionFactory.getCurrentSession().createQuery(hql);
-		return (List<Concept>) query.list();
-	}
-	
 	/**
-	 * @see org.openmrs.module.conceptmanagementapps.api.db.ConceptManagementAppsDAO#getConceptReferenceTermsBySource(ConceptSource)
+	 * @see org.openmrs.module.conceptmanagementapps.api.db.ConceptManagementAppsDAO#getConceptReferenceTermsWithSpecifiedSourceIfIncluded(org.openmrs.ConceptSource,
+	 *      java.lang.Integer, java.lang.Integer, java.lang.String, int)
 	 */
 	@SuppressWarnings("unchecked")
-	public List<ConceptReferenceTerm> getConceptReferenceTerms(ConceptSource specifiedSource, Integer startIndex,
-	                                                           Integer numToReturn, String sortColumn, int order)
+	public List<ConceptReferenceTerm> getConceptReferenceTermsWithSpecifiedSourceIfIncluded(ConceptSource specifiedSource,
+	                                                                                        Integer startIndex,
+	                                                                                        Integer numToReturn,
+	                                                                                        String sortColumn, int order)
 	    throws DAOException {
 		
 		Criteria criteria = sessionFactory.getCurrentSession().createCriteria(ConceptReferenceTerm.class);
@@ -211,7 +198,11 @@ public class HibernateConceptManagementAppsDAO implements ConceptManagementAppsD
 		return (List<ConceptReferenceTerm>) criteria.list();
 	}
 	
-	public Integer getCountOfConceptReferenceTerms(ConceptSource specifiedSource) throws DAOException {
+	/**
+	 * @see org.openmrs.module.conceptmanagementapps.api.db.ConceptManagementAppsDAO#getCountOfConceptReferenceTermsWithSpecifiedSourceIfIncluded(org.openmrs.ConceptSource)
+	 */
+	public Integer getCountOfConceptReferenceTermsWithSpecifiedSourceIfIncluded(ConceptSource specifiedSource)
+	    throws DAOException {
 		
 		Criteria criteria = sessionFactory.getCurrentSession().createCriteria(ConceptReferenceTerm.class);
 		
@@ -226,8 +217,9 @@ public class HibernateConceptManagementAppsDAO implements ConceptManagementAppsD
 	}
 	
 	/**
-	 * @see org.openmrs.api.db.ConceptDAO#getConceptReferenceTerms(String, ConceptSource, Integer,
-	 *      Integer, boolean)
+	 * @see org.openmrs.module.conceptmanagementapps.api.db.ConceptManagementAppsDAO#getConceptReferenceTermsWithQuery(java.lang.String,
+	 *      org.openmrs.ConceptSource, java.lang.Integer, java.lang.Integer, boolean,
+	 *      java.lang.String, int)
 	 */
 	@SuppressWarnings("unchecked")
 	public List<ConceptReferenceTerm> getConceptReferenceTermsWithQuery(String query, ConceptSource conceptSource,
@@ -249,6 +241,7 @@ public class HibernateConceptManagementAppsDAO implements ConceptManagementAppsD
 	
 	/**
 	 * @param query
+	 * @param conceptSource
 	 * @param includeRetired
 	 * @return
 	 */
@@ -266,6 +259,10 @@ public class HibernateConceptManagementAppsDAO implements ConceptManagementAppsD
 		return searchCriteria;
 	}
 	
+	/**
+	 * @see org.openmrs.module.conceptmanagementapps.api.db.ConceptManagementAppsDAO#getCountOfConceptReferenceTermsWithQuery(java.lang.String,
+	 *      org.openmrs.ConceptSource, boolean)
+	 */
 	public Integer getCountOfConceptReferenceTermsWithQuery(String query, ConceptSource conceptSource, boolean includeRetired)
 	    throws APIException {
 		

@@ -111,7 +111,7 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 	
 	private ConceptManagementAppsDAO dao;
 	
-	private boolean cancelManageSnomedCTProcess = true;
+	private boolean manageSnomedCTProcessCancelled = true;
 	
 	private ManageSnomedCTProcess currentSnomedCTProcess;
 	
@@ -148,49 +148,91 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 	}
 	
 	/**
-	 * @param cancelManageSnomedCTProcess the cancelManageSnomedCTProcess to set
+	 * For canceling current running process to add names relationships or ancestors to concept
+	 * reference terms
+	 * 
+	 * @param manageSnomedCTProcessCancelled
 	 */
-	public void setCancelManageSnomedCTProcess(Boolean cancelManageSnomedCTProcess) {
-		this.cancelManageSnomedCTProcess = cancelManageSnomedCTProcess;
+	public void setManageSnomedCTProcessCancelled(Boolean manageSnomedCTProcessCancelled) {
+		this.manageSnomedCTProcessCancelled = manageSnomedCTProcessCancelled;
 	}
 	
 	/**
-	 * @return cancelManageSnomedCTProcess
+	 * For canceling current running process to add names relationships or ancestors to concept
+	 * reference terms
+	 * 
+	 * @return boolean for if it needs to be cancelled
 	 */
-	public Boolean getCancelManageSnomedCTProcess() {
-		return cancelManageSnomedCTProcess;
+	public Boolean getManageSnomedCTProcessCancelled() {
+		return manageSnomedCTProcessCancelled;
 	}
 	
+	/**
+	 * Gets the children for the specified conceptReferenceTerm using the concept reference term map
+	 * termB id
+	 * 
+	 * @param currentTerm
+	 * @return List of ConceptReferenceTermMaps
+	 * @throws DAOException
+	 */
 	@Transactional(readOnly = true)
 	public List<ConceptReferenceTermMap> getReferenceTermsChildren(ConceptReferenceTerm currentTerm) throws DAOException {
 		return this.dao.getReferenceTermsChildren(currentTerm);
 	}
 	
+	/**
+	 * Gets the parents for the specified conceptReferenceTerm using the concept reference term map
+	 * termA id
+	 * 
+	 * @param currentTerm
+	 * @return List of ConceptReferenceTermMaps
+	 * @throws DAOException
+	 */
 	@Transactional(readOnly = true)
 	public List<ConceptReferenceTermMap> getReferenceTermsParents(ConceptReferenceTerm currentTerm) throws DAOException {
 		return this.dao.getReferenceTermsParents(currentTerm);
 	}
 	
+	/**
+	 * @see org.openmrs.module.conceptmanagementapps.api.ConceptManagementAppsService#getUnmappedConcepts(org.openmrs.ConceptSource,
+	 *      java.util.List)
+	 */
 	@Transactional(readOnly = true)
 	public List<Concept> getUnmappedConcepts(ConceptSource conceptSource, List<ConceptClass> classesToInclude) {
 		
 		return this.dao.getUnmappedConcepts(conceptSource, classesToInclude);
 	}
 	
+	/**
+	 * @see org.openmrs.module.conceptmanagementapps.api.ConceptManagementAppsService#getConceptReferenceTerms(org.openmrs.ConceptSource,
+	 *      java.lang.Integer, java.lang.Integer, java.lang.String, int)
+	 */
 	@Transactional(readOnly = true)
-	public List<ConceptReferenceTerm> getConceptReferenceTerms(ConceptSource specifiedSource, Integer startIndex,
-	                                                           Integer numToReturn, String sortColumn, int order)
+	public List<ConceptReferenceTerm> getConceptReferenceTermsWithSpecifiedSourceIfIncluded(ConceptSource specifiedSource,
+	                                                                                        Integer startIndex,
+	                                                                                        Integer numToReturn,
+	                                                                                        String sortColumn, int order)
 	    throws DAOException {
 		
-		return this.dao.getConceptReferenceTerms(specifiedSource, startIndex, numToReturn, sortColumn, order);
+		return this.dao.getConceptReferenceTermsWithSpecifiedSourceIfIncluded(specifiedSource, startIndex, numToReturn,
+		    sortColumn, order);
 	}
 	
+	/**
+	 * @see org.openmrs.module.conceptmanagementapps.api.ConceptManagementAppsService#getCountOfConceptReferenceTerms(org.openmrs.ConceptSource)
+	 */
 	@Transactional(readOnly = true)
-	public Integer getCountOfConceptReferenceTerms(ConceptSource specifiedSource) throws DAOException {
+	public Integer getCountOfConceptReferenceTermsWithSpecifiedSourceIfIncluded(ConceptSource specifiedSource)
+	    throws DAOException {
 		
-		return this.dao.getCountOfConceptReferenceTerms(specifiedSource);
+		return this.dao.getCountOfConceptReferenceTermsWithSpecifiedSourceIfIncluded(specifiedSource);
 	}
 	
+	/**
+	 * @see org.openmrs.module.conceptmanagementapps.api.ConceptManagementAppsService#getConceptReferenceTermsWithQuery(java.lang.String,
+	 *      org.openmrs.ConceptSource, java.lang.Integer, java.lang.Integer, boolean,
+	 *      java.lang.String, int)
+	 */
 	@Transactional(readOnly = true)
 	public List<ConceptReferenceTerm> getConceptReferenceTermsWithQuery(String query, ConceptSource conceptSource,
 	                                                                    Integer start, Integer length,
@@ -201,6 +243,10 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 		    order);
 	}
 	
+	/**
+	 * @see org.openmrs.module.conceptmanagementapps.api.ConceptManagementAppsService#getCountOfConceptReferenceTermsWithQuery(java.lang.String,
+	 *      org.openmrs.ConceptSource, boolean)
+	 */
 	@Transactional(readOnly = true)
 	public Integer getCountOfConceptReferenceTermsWithQuery(String query, ConceptSource conceptSource, boolean includeRetired)
 	    throws DAOException {
@@ -209,6 +255,9 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 		
 	}
 	
+	/**
+	 * @see org.openmrs.module.conceptmanagementapps.api.ConceptManagementAppsService#getConceptsParentReferenceTerms(org.openmrs.Concept)
+	 */
 	@Transactional(readOnly = true)
 	public Set<ConceptReferenceTerm> getConceptsParentReferenceTerms(Concept concept) {
 		
@@ -230,6 +279,9 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 		return parentTerms;
 	}
 	
+	/**
+	 * @see org.openmrs.module.conceptmanagementapps.api.ConceptManagementAppsService#getConceptsChildReferenceTerms(org.openmrs.Concept)
+	 */
 	@Transactional(readOnly = true)
 	public Set<ConceptReferenceTerm> getConceptsChildReferenceTerms(Concept concept) {
 		
@@ -251,6 +303,9 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 		return childTerms;
 	}
 	
+	/**
+	 * @see org.openmrs.module.conceptmanagementapps.api.ConceptManagementAppsService#getRefTermChildReferenceTerms(org.openmrs.ConceptReferenceTerm)
+	 */
 	@Transactional(readOnly = true)
 	public Set<ConceptReferenceTerm> getRefTermChildReferenceTerms(ConceptReferenceTerm currentTerm) {
 		
@@ -273,6 +328,9 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 		return childTerms;
 	}
 	
+	/**
+	 * @see org.openmrs.module.conceptmanagementapps.api.ConceptManagementAppsService#getRefTermParentReferenceTerms(org.openmrs.ConceptReferenceTerm)
+	 */
 	@Transactional(readOnly = true)
 	public Set<ConceptReferenceTerm> getRefTermParentReferenceTerms(ConceptReferenceTerm currentTerm) {
 		
@@ -296,6 +354,9 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 		return parentTerms;
 	}
 	
+	/**
+	 * @see org.openmrs.module.conceptmanagementapps.api.ConceptManagementAppsService#uploadSpreadsheet(org.springframework.web.multipart.MultipartFile)
+	 */
 	@Transactional
 	public FileDownload uploadSpreadsheet(MultipartFile spreadsheetFile) throws APIException {
 		
@@ -371,6 +432,10 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 		
 	}
 	
+	/**
+	 * @see org.openmrs.module.conceptmanagementapps.api.ConceptManagementAppsService#startManageSnomedCTProcess(java.lang.String,
+	 *      java.lang.String, org.openmrs.ConceptSource)
+	 */
 	@Transactional
 	public void startManageSnomedCTProcess(String process, String snomedFileDirectory, ConceptSource snomedSource)
 	    throws APIException {
@@ -418,6 +483,10 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 		
 	}
 	
+	/**
+	 * @see org.openmrs.module.conceptmanagementapps.api.ConceptManagementAppsService#writeFileWithMissingConceptMappings(java.util.List,
+	 *      java.io.PrintWriter, java.lang.String, java.lang.String)
+	 */
 	@Transactional(readOnly = true)
 	public ICsvMapWriter writeFileWithMissingConceptMappings(List<Concept> conceptList, PrintWriter spreadsheetWriter,
 	                                                         String mapTypeDefaultValue, String conceptSourceName)
@@ -517,13 +586,23 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 		return new FileDownload(errorFilename, contentType, linesShowingIfThereAreErrors.getBytes());
 	}
 	
+	/**
+	 * Adds the ancestors to the SNOMED CT terms. Uses the International Release RF2 version from
+	 * Unified Medical Language System® (UMLS®) to find the children contained in the
+	 * /SnomedCT_Release_INT_20130131/RF2Release/Full/Terminology/ Relationship file
+	 * 
+	 * @param snomedFileDirectory
+	 * @param snomedSourceUuid
+	 * @throws APIException
+	 */
 	private void addAncestorsToSnomedCTTerms(String snomedFileDirectory, String snomedSourceUuid) throws APIException {
 		
 		ConceptService cs = Context.getConceptService();
 		
 		ConceptSource snomedSource = cs.getConceptSourceByUuid(snomedSourceUuid);
 		
-		List<ConceptReferenceTerm> sourceRefTerms = getConceptReferenceTerms(snomedSource, 0, -1, "code", 1);
+		List<ConceptReferenceTerm> sourceRefTerms = getConceptReferenceTermsWithSpecifiedSourceIfIncluded(snomedSource, 0,
+		    -1, "code", 1);
 		List<ConceptReferenceTerm> listOfTermsToSave = new ArrayList<ConceptReferenceTerm>();
 		
 		Set<Long> listOfNewTermIds = new HashSet<Long>();
@@ -536,7 +615,7 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 			IndexSearcher searcher = new IndexSearcher(reader);
 			
 			for (ConceptReferenceTerm term : sourceRefTerms) {
-				if (!getCancelManageSnomedCTProcess()) {
+				if (!getManageSnomedCTProcessCancelled()) {
 					Set<Integer> tmpListOfDocIds = new HashSet<Integer>();
 					
 					tmpListOfDocIds = searchIndexesGetAncestorTermIds(term.getCode(), listOfNewTermIds, listOfDocIds,
@@ -575,6 +654,15 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 		
 	}
 	
+	/**
+	 * Adds the relationships to the SNOMED CT terms. Uses the International Release RF2 version
+	 * from Unified Medical Language System® (UMLS®) to find the children contained in the
+	 * /SnomedCT_Release_INT_20130131/RF2Release/Full/Terminology/ Relationship file
+	 * 
+	 * @param snomedFileDirectory
+	 * @param snomedSourceUuid
+	 * @throws APIException
+	 */
 	private void addRelationshipsToSnomedCTTerms(String snomedFileDirectory, String snomedSourceUuid) throws APIException {
 		
 		ConceptService cs = Context.getConceptService();
@@ -589,7 +677,8 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 			IndexReader reader = DirectoryReader.open(FSDirectory.open(new File(snomedIndexFileDirectoryLocation)));
 			IndexSearcher searcher = new IndexSearcher(reader);
 			
-			List<ConceptReferenceTerm> sourceRefTermsNew = getConceptReferenceTerms(snomedSource, 0, -1, "code", 1);
+			List<ConceptReferenceTerm> sourceRefTermsNew = getConceptReferenceTermsWithSpecifiedSourceIfIncluded(
+			    snomedSource, 0, -1, "code", 1);
 			listOfMappedTerms = createNewMappings(sourceRefTermsNew, searcher, snomedMapType);
 			if (listOfMappedTerms != null) {
 				saveNewOrUpdatedRefTerms(listOfMappedTerms, cs);
@@ -612,13 +701,23 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 		
 	}
 	
+	/**
+	 * Adds the names to the SNOMED CT terms. Uses the International Release RF2 version from
+	 * Unified Medical Language System® (UMLS®) to find the names contained in the
+	 * /SnomedCT_Release_INT_20130131/RF2Release/Full/Terminology/ Description file
+	 * 
+	 * @param snomedFileDirectory
+	 * @param snomedSourceUuid
+	 * @throws APIException
+	 */
 	private void addNamesToSnomedCTTerms(String snomedFileDirectory, String snomedSourceUuid) throws APIException {
 		
 		ConceptService cs = Context.getConceptService();
 		
 		ConceptSource snomedSource = cs.getConceptSourceByUuid(snomedSourceUuid);
 		
-		List<ConceptReferenceTerm> sourceRefTerms = getConceptReferenceTerms(snomedSource, 0, -1, "code", 1);
+		List<ConceptReferenceTerm> sourceRefTerms = getConceptReferenceTermsWithSpecifiedSourceIfIncluded(snomedSource, 0,
+		    -1, "code", 1);
 		List<ConceptReferenceTerm> listOfUpdatedTerms = new ArrayList<ConceptReferenceTerm>();
 		
 		try {
@@ -656,7 +755,7 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 		currentSnomedCTProcess.setCurrentManageSnomedCTProcessNumToProcess(listOfTerms.size());
 		
 		for (ConceptReferenceTerm termToSave : listOfTerms) {
-			if (!getCancelManageSnomedCTProcess()) {
+			if (!getManageSnomedCTProcessCancelled()) {
 				cs.saveConceptReferenceTerm(termToSave);
 				
 				batchSize++;
@@ -676,7 +775,7 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 	}
 	
 	private void indexSnomedFiles(String snomedFiles) {
-		if (!getCancelManageSnomedCTProcess()) {
+		if (!getManageSnomedCTProcessCancelled()) {
 			try {
 				
 				File file = new File(snomedFiles);
@@ -769,7 +868,7 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 			ScoreDoc[] hits = sourceIdCollector.topDocs().scoreDocs;
 			
 			for (int i = 0; i < hits.length; ++i) {
-				if (!getCancelManageSnomedCTProcess()) {
+				if (!getManageSnomedCTProcessCancelled()) {
 					int docId = hits[i].doc;
 					Document d = searcher.doc(docId);
 					
@@ -807,7 +906,7 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 		Set<String> listOfAlreadyAddedTerms = new HashSet<String>();
 		
 		for (Integer docId : listOfDocIds) {
-			if (!getCancelManageSnomedCTProcess()) {
+			if (!getManageSnomedCTProcessCancelled()) {
 				Document termIds;
 				try {
 					termIds = searcher.doc(docId.intValue());
@@ -879,7 +978,7 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 		try {
 			
 			for (ConceptReferenceTerm term : listOfExistingTerms) {
-				if (!getCancelManageSnomedCTProcess()) {
+				if (!getManageSnomedCTProcessCancelled()) {
 					boolean mapAdded = false;
 					Set<Long> listOfTermIdsAlreadyMapped = new HashSet<Long>();
 					
@@ -928,7 +1027,7 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 	
 	private ConceptReferenceTerm addNameToReferenceTerm(ConceptReferenceTerm term, IndexSearcher searcher) {
 		
-		if (!getCancelManageSnomedCTProcess()) {
+		if (!getManageSnomedCTProcessCancelled()) {
 			TopScoreDocCollector termCollector = TopScoreDocCollector.create(1000, true);
 			String currentTermWithName = null;
 			Document currentTermDoc = null;
@@ -986,7 +1085,7 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 		
 		try {
 			for (ConceptReferenceTerm term : terms) {
-				if (!getCancelManageSnomedCTProcess()) {
+				if (!getManageSnomedCTProcessCancelled()) {
 					String currentTermWithName = null;
 					Document currentTermDoc = null;
 					
@@ -1064,6 +1163,13 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 		return processors;
 	}
 	
+	/**
+	 * Goes through and checks for blanks and other validations that can be done before sending to
+	 * the database to be saved
+	 * 
+	 * @param mapList
+	 * @return String of error message
+	 */
 	private String getInitialErrorsBeforeTryingToSaveConcept(Map<String, Object> mapList) {
 		String errorString = "";
 		ConceptService cs = Context.getConceptService();

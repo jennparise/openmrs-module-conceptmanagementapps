@@ -34,7 +34,7 @@ public class ManageSnomedCTPageController {
 	                 PageRequest pageRequest, HttpServletRequest request, PageModel model) {
 		
 		ConceptService conceptService = Context.getConceptService();
-
+		
 		ConceptSource snomedSource = conceptService.getConceptSource(Integer.parseInt(sourceId[0]));
 		
 		String inputType = request.getParameter("inputType");
@@ -44,7 +44,7 @@ public class ManageSnomedCTPageController {
 		
 		if (StringUtils.equalsIgnoreCase("reload", inputType)) {
 			
-			if (conceptManagementAppsService.getCancelManageSnomedCTProcess()) {
+			if (conceptManagementAppsService.getManageSnomedCTProcessCancelled()) {
 				
 				setValuesForNoProcessRunning(model);
 				
@@ -55,15 +55,15 @@ public class ManageSnomedCTPageController {
 			
 		} else if (StringUtils.equalsIgnoreCase("cancel", inputType)) {
 			
-			conceptManagementAppsService.setCancelManageSnomedCTProcess(true);
+			conceptManagementAppsService.setManageSnomedCTProcessCancelled(true);
 			
 			setValuesForNoProcessRunning(model);
 			
 		} else {
 			
-			conceptManagementAppsService.setCancelManageSnomedCTProcess(false);
+			conceptManagementAppsService.setManageSnomedCTProcessCancelled(false);
 			conceptManagementAppsService.startManageSnomedCTProcess(inputType, snomedFileDirectoryLocation, snomedSource);
-			conceptManagementAppsService.setCancelManageSnomedCTProcess(true);
+			conceptManagementAppsService.setManageSnomedCTProcessCancelled(true);
 			
 			setValuesForNoProcessRunning(model);
 			
@@ -91,7 +91,7 @@ public class ManageSnomedCTPageController {
 		model.addAttribute("sourceList", sourceList);
 		model.addAttribute("sourceId", sourceId);
 		
-		if (conceptManagementAppsService.getCancelManageSnomedCTProcess()) {
+		if (conceptManagementAppsService.getManageSnomedCTProcessCancelled()) {
 			
 			setValuesForNoProcessRunning(model);
 			

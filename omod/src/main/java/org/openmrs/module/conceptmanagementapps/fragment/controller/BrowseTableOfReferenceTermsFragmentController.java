@@ -64,7 +64,7 @@ public class BrowseTableOfReferenceTermsFragmentController {
 		
 		ConceptService conceptService = (ConceptService) Context.getService(ConceptService.class);
 		ConceptManagementAppsService conceptManagementAppsService = (ConceptManagementAppsService) Context
-		        .getService(ConceptManagementAppsService.class); 
+		        .getService(ConceptManagementAppsService.class);
 		
 		ConceptSource specifiedSource = null;
 		if (conceptService.getConceptSource(sourceId) != null) {
@@ -72,7 +72,7 @@ public class BrowseTableOfReferenceTermsFragmentController {
 		}
 		
 		if (StringUtils.isNotEmpty(sSearch) && StringUtils.isNotBlank(sSearch)) {
-			if (sourceId == 0) { 
+			if (sourceId == 0) {
 				
 				iTotalRecords = conceptManagementAppsService.getCountOfConceptReferenceTermsWithQuery(sSearch, null, false);
 				referenceTermList = conceptManagementAppsService.getConceptReferenceTermsWithQuery(sSearch, null,
@@ -89,14 +89,16 @@ public class BrowseTableOfReferenceTermsFragmentController {
 		} else {
 			
 			if (sourceId == 0) {
-				iTotalRecords = conceptManagementAppsService.getCountOfConceptReferenceTerms(null);
-				referenceTermList = conceptManagementAppsService.getConceptReferenceTerms(null, startIndex,
-				    numOfRefTermsToRetrieve, sortColumn, sortDirection);
+				iTotalRecords = conceptManagementAppsService
+				        .getCountOfConceptReferenceTermsWithSpecifiedSourceIfIncluded(null);
+				referenceTermList = conceptManagementAppsService.getConceptReferenceTermsWithSpecifiedSourceIfIncluded(null,
+				    startIndex, numOfRefTermsToRetrieve, sortColumn, sortDirection);
 				
 			} else {
-				iTotalRecords = conceptManagementAppsService.getCountOfConceptReferenceTerms(specifiedSource);
-				referenceTermList = conceptManagementAppsService.getConceptReferenceTerms(specifiedSource, startIndex,
-				    numOfRefTermsToRetrieve, sortColumn, sortDirection);
+				iTotalRecords = conceptManagementAppsService
+				        .getCountOfConceptReferenceTermsWithSpecifiedSourceIfIncluded(specifiedSource);
+				referenceTermList = conceptManagementAppsService.getConceptReferenceTermsWithSpecifiedSourceIfIncluded(
+				    specifiedSource, startIndex, numOfRefTermsToRetrieve, sortColumn, sortDirection);
 				
 			}
 			
