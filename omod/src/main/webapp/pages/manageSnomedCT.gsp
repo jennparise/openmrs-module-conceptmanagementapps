@@ -121,7 +121,9 @@ function validateForm(inputType) {
     }
 }
 </script>
-
+	<p>
+		<p style="color:red">${manageSnomedCTError}</p>
+	</p>
  <h2>
         ${ui.message("conceptmanagementapps.managesnomedct.title")}
  </h2>

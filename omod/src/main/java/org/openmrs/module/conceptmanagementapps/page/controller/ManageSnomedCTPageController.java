@@ -1,5 +1,6 @@
 package org.openmrs.module.conceptmanagementapps.page.controller;
 
+import java.io.FileNotFoundException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -11,6 +12,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.ConceptSource;
+import org.openmrs.api.APIException;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.appui.UiSessionContext;
@@ -30,14 +32,15 @@ public class ManageSnomedCTPageController {
 	protected final Log log = LogFactory.getLog(this.getClass());
 	
 	public void post(@RequestParam("snomedDirectoryLocation") String snomedFileDirectoryLocation,
-	                 @RequestParam(value = "sourceList", required = false) String[] sourceId, UiUtils ui,
+	                 @RequestParam(value = "sourceList", required = false) String[] sourceIds, UiUtils ui,
 	                 PageRequest pageRequest, HttpServletRequest request, PageModel model) {
 		
 		ConceptService conceptService = Context.getConceptService();
 		
-		ConceptSource snomedSource = conceptService.getConceptSource(Integer.parseInt(sourceId[0]));
+		ConceptSource snomedSource = conceptService.getConceptSource(Integer.parseInt(sourceIds[0]));
 		
 		String inputType = request.getParameter("inputType");
+		String manageSnomedCTError = "";
 		
 		ConceptManagementAppsService conceptManagementAppsService = (ConceptManagementAppsService) Context
 		        .getService(ConceptManagementAppsService.class);
@@ -62,12 +65,39 @@ public class ManageSnomedCTPageController {
 		} else {
 			
 			conceptManagementAppsService.setManageSnomedCTProcessCancelled(false);
-			conceptManagementAppsService.startManageSnomedCTProcess(inputType, snomedFileDirectoryLocation, snomedSource);
+			try {
+				conceptManagementAppsService
+				        .startManageSnomedCTProcess(inputType, snomedFileDirectoryLocation, snomedSource);
+			}
+			catch (FileNotFoundException e) {
+				manageSnomedCTError = "Files not found. Please Check your path.";
+				log.error("File Not Found Exception: ", e);
+			}
+			catch (APIException e) {
+				log.error("Error generated", e);
+			}
+			
 			conceptManagementAppsService.setManageSnomedCTProcessCancelled(true);
 			
 			setValuesForNoProcessRunning(model);
 			
 		}
+		
+		List<ConceptSource> sourceList = Context.getConceptService().getAllConceptSources();
+		int sourceId = 0;
+		
+		ConceptManagementAppsProperties cmap = new ConceptManagementAppsProperties();
+		String snomedSourceUuid = cmap
+		        .getSnomedCTConceptSourceUuidGlobalProperty(ConceptManagementAppsConstants.SNOMED_CT_CONCEPT_SOURCE_UUID_GP);
+		for (ConceptSource source : sourceList) {
+			
+			if (StringUtils.equals(source.getUuid(), snomedSourceUuid)) {
+				sourceId = source.getId();
+			}
+		}
+		model.addAttribute("sourceList", sourceList);
+		model.addAttribute("sourceId", sourceId);
+		model.addAttribute("manageSnomedCTError", manageSnomedCTError);
 		
 	}
 	
@@ -90,6 +120,7 @@ public class ManageSnomedCTPageController {
 		}
 		model.addAttribute("sourceList", sourceList);
 		model.addAttribute("sourceId", sourceId);
+		model.addAttribute("manageSnomedCTError", "");
 		
 		if (conceptManagementAppsService.getManageSnomedCTProcessCancelled()) {
 			

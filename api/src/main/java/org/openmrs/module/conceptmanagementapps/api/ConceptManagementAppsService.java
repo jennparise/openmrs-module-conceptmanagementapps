@@ -13,6 +13,7 @@
  */
 package org.openmrs.module.conceptmanagementapps.api;
 
+import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.Set;
@@ -49,6 +50,11 @@ public interface ConceptManagementAppsService extends OpenmrsService {
 	 */
 	public void setManageSnomedCTProcessCancelled(Boolean cancelProcess);
 	
+	/**
+	 * Gets the name of the method running to either add names, ancestors or relationships
+	 * 
+	 * @return
+	 */
 	public Boolean getManageSnomedCTProcessCancelled();
 	
 	/**
@@ -70,7 +76,6 @@ public interface ConceptManagementAppsService extends OpenmrsService {
 	public List<Concept> getUnmappedConcepts(ConceptSource conceptSource, List<ConceptClass> classesToInclude);
 	
 	/**
-	 * 
 	 * Upload spreadsheet filled out with mappings
 	 * 
 	 * @param spreadsheetFile
@@ -89,7 +94,8 @@ public interface ConceptManagementAppsService extends OpenmrsService {
 	 * @throws APIException
 	 */
 	@Transactional
-	public void startManageSnomedCTProcess(String process, String dirPath, ConceptSource snomedSource) throws APIException;
+	public void startManageSnomedCTProcess(String process, String dirPath, ConceptSource snomedSource) throws APIException,
+	    FileNotFoundException;
 	
 	/**
 	 * Gets the concept reference terms for a source if given (otherwise all) from a starting point
@@ -142,8 +148,8 @@ public interface ConceptManagementAppsService extends OpenmrsService {
 	                                                                    Integer start, Integer length,
 	                                                                    boolean includeRetired, String sortColumn, int order)
 	    throws APIException;
+	
 	/**
-	 * 
 	 * Writes the file with the missing mappings
 	 * 
 	 * @param conceptList

@@ -398,14 +398,14 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 		}
 		
 		catch (APIException e) {
-			e.printStackTrace();
+			log.error(e);
 			throw new APIException("error on row " + mapReader.getRowNumber() + "," + mapReader.getUntokenizedRow() + e);
 		}
 		catch (FileNotFoundException e) {
-			e.printStackTrace();
+			log.error(e);
 		}
 		catch (IOException e) {
-			e.printStackTrace();
+			log.error(e);
 		}
 		
 		finally {
@@ -416,7 +416,7 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 					mapReader.close();
 				}
 				catch (IOException e) {
-					e.printStackTrace();
+					log.error(e);
 				}
 			}
 		}
@@ -438,7 +438,7 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 	 */
 	@Transactional
 	public void startManageSnomedCTProcess(String process, String snomedFileDirectory, ConceptSource snomedSource)
-	    throws APIException {
+	    throws APIException, FileNotFoundException {
 		
 		try {
 			
@@ -774,14 +774,16 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 		
 	}
 	
-	private void indexSnomedFiles(String snomedFiles) {
+	private void indexSnomedFiles(String snomedFiles) throws FileNotFoundException {
 		if (!getManageSnomedCTProcessCancelled()) {
 			try {
 				
 				File file = new File(snomedFiles);
 				FSDirectory dir = FSDirectory.open(new File(snomedIndexFileDirectoryLocation));
 				IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_44, analyzer);
-				
+				if (file.listFiles() == null) {
+					throw new FileNotFoundException("Error finding SNOMED CT files. Please check the path.");
+				}
 				for (File f : file.listFiles()) {
 					
 					IndexWriter writer = new IndexWriter(dir, config);
@@ -844,7 +846,9 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 				}
 			}
 			catch (FileNotFoundException e) {
-				log.error("Error Indexing Snomed: Files File Not Found", e);
+				log.error("Error Indexing Snomed Files: File Not Found", e);
+				throw new FileNotFoundException("Error finding SNOMED CT files. Please check the path. "+e);
+				
 			}
 			catch (IOException e) {
 				log.error("Error Indexing Snomed Files ", e);
@@ -892,7 +896,7 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 			
 		}
 		catch (Exception e) {
-			e.printStackTrace();
+			log.error(e);
 		}
 		
 		return listOfDocIds;
@@ -1275,14 +1279,14 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 		}
 		
 		catch (APIException e) {
-			e.printStackTrace();
+			log.error(e);
 			throw new APIException("error on row " + mapReader.getRowNumber() + "," + mapReader.getUntokenizedRow() + e);
 		}
 		catch (FileNotFoundException e) {
-			e.printStackTrace();
+			log.error(e);
 		}
 		catch (IOException e) {
-			e.printStackTrace();
+			log.error(e);
 		}
 		
 		finally {
@@ -1293,7 +1297,7 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 					mapReader.close();
 				}
 				catch (IOException e) {
-					e.printStackTrace();
+					log.error(e);
 				}
 			}
 		}
