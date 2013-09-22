@@ -610,8 +610,10 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 		Set<Integer> listOfExistingIds = new HashSet<Integer>();
 		Set<ConceptReferenceTerm> listOfNewTerms = new HashSet<ConceptReferenceTerm>();
 		
+		IndexReader reader = null;
+		
 		try {
-			IndexReader reader = DirectoryReader.open(FSDirectory.open(new File(snomedIndexFileDirectoryLocation)));
+			reader = DirectoryReader.open(FSDirectory.open(new File(snomedIndexFileDirectoryLocation)));
 			IndexSearcher searcher = new IndexSearcher(reader);
 			
 			for (ConceptReferenceTerm term : sourceRefTerms) {
@@ -637,13 +639,15 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 				saveNewOrUpdatedRefTerms(listOfTermsToSave, cs);
 			}
 			
-			reader.close();
 		}
 		catch (IOException e) {
 			log.error("Error Adding Ancestors ", e);
 		}
 		finally {
 			try {
+				if (reader != null) {
+					reader.close();
+				}
 				FileUtils.cleanDirectory(new File(snomedIndexFileDirectoryLocation));
 				
 			}
@@ -673,8 +677,10 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 		
 		List<ConceptReferenceTerm> listOfMappedTerms = new ArrayList<ConceptReferenceTerm>();
 		
+		IndexReader reader = null;
+		
 		try {
-			IndexReader reader = DirectoryReader.open(FSDirectory.open(new File(snomedIndexFileDirectoryLocation)));
+			reader = DirectoryReader.open(FSDirectory.open(new File(snomedIndexFileDirectoryLocation)));
 			IndexSearcher searcher = new IndexSearcher(reader);
 			
 			List<ConceptReferenceTerm> sourceRefTermsNew = getConceptReferenceTermsWithSpecifiedSourceIfIncluded(
@@ -684,13 +690,15 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 				saveNewOrUpdatedRefTerms(listOfMappedTerms, cs);
 			}
 			
-			reader.close();
 		}
 		catch (IOException e) {
 			
 		}
 		finally {
 			try {
+				if (reader != null) {
+					reader.close();
+				}
 				FileUtils.cleanDirectory(new File(snomedIndexFileDirectoryLocation));
 				
 			}
@@ -720,9 +728,11 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 		    -1, "code", 1);
 		List<ConceptReferenceTerm> listOfUpdatedTerms = new ArrayList<ConceptReferenceTerm>();
 		
+		IndexReader reader = null;
+		
 		try {
 			
-			IndexReader reader = DirectoryReader.open(FSDirectory.open(new File(snomedIndexFileDirectoryLocation)));
+			reader = DirectoryReader.open(FSDirectory.open(new File(snomedIndexFileDirectoryLocation)));
 			IndexSearcher searcher = new IndexSearcher(reader);
 			
 			listOfUpdatedTerms = addNamesToAllReferenceTerms(sourceRefTerms, searcher);
@@ -730,7 +740,6 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 				saveNewOrUpdatedRefTerms(listOfUpdatedTerms, cs);
 			}
 			
-			reader.close();
 		}
 		catch (IOException e) {
 			
@@ -738,6 +747,9 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 		}
 		finally {
 			try {
+				if (reader != null) {
+					reader.close();
+				}
 				FileUtils.cleanDirectory(new File(snomedIndexFileDirectoryLocation));
 				
 			}
@@ -776,21 +788,38 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 	
 	private void indexSnomedFiles(String snomedFiles) throws FileNotFoundException {
 		if (!getManageSnomedCTProcessCancelled()) {
+			
+			BufferedReader br = null;
+			IndexWriter writer = null;
+			
 			try {
 				
 				File file = new File(snomedFiles);
+				
+				//check to make sure other processes have had time to clear the directory before starting to index if it takes too long something may be wrong and we should throw an exception
+				int tries = 0;
+				while (FSDirectory.listAll(new File(snomedIndexFileDirectoryLocation)).length > 0) {
+					if (tries > 5) {
+						throw new Exception("index directory is not empty or is locked");
+					}
+					Thread.sleep(5000);
+					tries++;
+				}
+				
 				FSDirectory dir = FSDirectory.open(new File(snomedIndexFileDirectoryLocation));
 				IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_44, analyzer);
+				
 				if (file.listFiles() == null) {
 					throw new FileNotFoundException("Error finding SNOMED CT files. Please check the path.");
 				}
+				
 				for (File f : file.listFiles()) {
 					
-					IndexWriter writer = new IndexWriter(dir, config);
+					writer = new IndexWriter(dir, config);
 					
 					if (StringUtils.contains(f.getName(), RELATIONSHIP_FILE)) {
 						
-						BufferedReader br = new BufferedReader(new FileReader(f));
+						br = new BufferedReader(new FileReader(f));
 						
 						for (String line = br.readLine(); line != null; line = br.readLine()) {
 							
@@ -813,11 +842,10 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 								
 							}
 						}
-						br.close();
 					}
 					if (StringUtils.contains(f.getName(), DESCRIPTION_FILE)) {
 						
-						BufferedReader br = new BufferedReader(new FileReader(f));
+						br = new BufferedReader(new FileReader(f));
 						
 						for (String line = br.readLine(); line != null; line = br.readLine()) {
 							
@@ -839,7 +867,6 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 							}
 							
 						}
-						br.close();
 					}
 					
 					writer.close();
@@ -855,6 +882,19 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 			}
 			catch (Exception e) {
 				log.error("Error Indexing Snomed Files ", e);
+			}
+			finally {
+				try {
+					if (br != null) {
+						br.close();
+					}
+					if (writer != null) {
+						writer.close();
+					}
+				}
+				catch (IOException e) {
+					log.error("Error Indexing Snomed Files: trying to close buffered reader ", e);
+				}
 			}
 		} else {
 			return;

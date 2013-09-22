@@ -45,32 +45,37 @@ public class ManageSnomedCTPageController {
 		ConceptManagementAppsService conceptManagementAppsService = (ConceptManagementAppsService) Context
 		        .getService(ConceptManagementAppsService.class);
 		
-		if (StringUtils.equalsIgnoreCase("reload", inputType)) {
-			
-			if (conceptManagementAppsService.getManageSnomedCTProcessCancelled()) {
-				
-				setValuesForNoProcessRunning(model);
-				
-			} else {
-				
-				setValuesForCurrentProcess(model, conceptManagementAppsService);
-			}
-			
-		} else if (StringUtils.equalsIgnoreCase("cancel", inputType)) {
+		if (StringUtils.equalsIgnoreCase("cancel", inputType)) {
 			
 			conceptManagementAppsService.setManageSnomedCTProcessCancelled(true);
+			setValuesForNoProcessRunning(model, conceptManagementAppsService, snomedFileDirectoryLocation);
 			
-			setValuesForNoProcessRunning(model);
+		} else if (StringUtils.equalsIgnoreCase("saveConfiguration", inputType)) {
+			
+			try {
+				
+				conceptManagementAppsService
+				        .startManageSnomedCTProcess(inputType, snomedFileDirectoryLocation, snomedSource);
+				setValuesForNoProcessRunning(model, conceptManagementAppsService, snomedFileDirectoryLocation);
+			}
+			catch (FileNotFoundException e) {
+				manageSnomedCTError = "Files not found. Please check your file path.";
+				log.error("File Not Found Exception: ", e);
+			}
+			catch (APIException e) {
+				log.error("Error generated", e);
+			}
 			
 		} else {
 			
 			conceptManagementAppsService.setManageSnomedCTProcessCancelled(false);
 			try {
+				
 				conceptManagementAppsService
 				        .startManageSnomedCTProcess(inputType, snomedFileDirectoryLocation, snomedSource);
 			}
 			catch (FileNotFoundException e) {
-				manageSnomedCTError = "Files not found. Please Check your path.";
+				manageSnomedCTError = "Files not found. Please check your file path.";
 				log.error("File Not Found Exception: ", e);
 			}
 			catch (APIException e) {
@@ -79,7 +84,7 @@ public class ManageSnomedCTPageController {
 			
 			conceptManagementAppsService.setManageSnomedCTProcessCancelled(true);
 			
-			setValuesForNoProcessRunning(model);
+			setValuesForNoProcessRunning(model, conceptManagementAppsService, snomedFileDirectoryLocation);
 			
 		}
 		
@@ -106,6 +111,8 @@ public class ManageSnomedCTPageController {
 		ConceptManagementAppsService conceptManagementAppsService = (ConceptManagementAppsService) Context
 		        .getService(ConceptManagementAppsService.class);
 		
+		String snomedFileDirectoryLocation = "";
+		
 		List<ConceptSource> sourceList = Context.getConceptService().getAllConceptSources();
 		int sourceId = 0;
 		
@@ -124,7 +131,7 @@ public class ManageSnomedCTPageController {
 		
 		if (conceptManagementAppsService.getManageSnomedCTProcessCancelled()) {
 			
-			setValuesForNoProcessRunning(model);
+			setValuesForNoProcessRunning(model, conceptManagementAppsService, snomedFileDirectoryLocation);
 			
 		} else {
 			
@@ -134,17 +141,38 @@ public class ManageSnomedCTPageController {
 				
 			} else {
 				
-				setValuesForNoProcessRunning(model);
+				setValuesForNoProcessRunning(model, conceptManagementAppsService, snomedFileDirectoryLocation);
 				
 			}
 		}
 	}
 	
-	private void setValuesForNoProcessRunning(PageModel model) {
+	private void setValuesForNoProcessRunning(PageModel model, ConceptManagementAppsService conceptManagementAppsService,
+	                                          String snomedFileDirectoryLocation) {
 		
+		ManageSnomedCTProcess currentProcess = conceptManagementAppsService.getCurrentSnomedCTProcess();
+		
+		String dirLocation = snomedFileDirectoryLocation;
+		if (StringUtils.isEmpty(dirLocation) || StringUtils.isBlank(dirLocation)) {
+			if (currentProcess != null) {
+				if (StringUtils.isEmpty(currentProcess.getCurrentManageSnomedCTProcessDirectoryLocation())
+				        || StringUtils.isBlank(currentProcess.getCurrentManageSnomedCTProcessDirectoryLocation())) {
+					dirLocation = "";
+				} else {
+					dirLocation = currentProcess.getCurrentManageSnomedCTProcessDirectoryLocation();
+				}
+			} else {
+				dirLocation = "";
+			}
+		}
+		if (dirLocation.length() > 0) {
+			model.addAttribute("configSaved", "configSaved");
+		} else {
+			model.addAttribute("configSaved", "configNotSaved");
+		}
 		model.addAttribute("processRunning", "none");
 		model.addAttribute("processStatus", "");
-		model.addAttribute("dirLocation", "");
+		model.addAttribute("dirLocation", dirLocation);
 		model.addAttribute("processPercentComplete", "");
 	}
 	
@@ -176,5 +204,10 @@ public class ManageSnomedCTPageController {
 		model.addAttribute("dirLocation", currentProcess.getCurrentManageSnomedCTProcessDirectoryLocation());
 		model.addAttribute("processPercentComplete", Math.round(percentComplete) + "% Complete Processing " + numProcessed
 		        + " of " + numToProcess);
+		if (currentProcess.getCurrentManageSnomedCTProcessDirectoryLocation().length() > 0) {
+			model.addAttribute("configSaved", "configSaved");
+		} else {
+			model.addAttribute("configSaved", "configNotSaved");
+		}
 	}
 }

@@ -25,7 +25,7 @@ public class ConceptManagementAppsMainPageController {
 	                PageRequest request, UiUtils ui) throws IOException {
 		List<Extension> extensions = appFrameworkService
 		        .getExtensionsForCurrentUser("org.openmrs.conceptmanagementapps.homepageLink");
-		Set<Extension> extensionSet=new HashSet<Extension>();
+		Set<Extension> extensionSet = new HashSet<Extension>();
 		extensionSet.addAll(extensions);
 		model.addAttribute("extensions", extensionSet);
 		model.addAttribute("authenticatedUser", Context.getAuthenticatedUser());
