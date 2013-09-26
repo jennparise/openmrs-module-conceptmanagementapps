@@ -41,6 +41,7 @@ searchConceptApp.factory('SearchTermServ', function($http, $resource) {
 
 			}).error(function(xhr, status, err) {
 				alert('Concept Search AJAX ' + err);
+				console.log('Concept Search AJAX ' + err);
 			});
 		}
 	}
@@ -70,10 +71,10 @@ searchConceptApp.factory('hierarchyConceptTermServ', function($http, $resource) 
 
 
 function MainCtrl($scope, SearchTermServ,messageService) {
-	$scope.selectedItem = {
+	$scope.selectedConcept = {
 			conceptId : 0,
 			conceptName : ''
-		};
+	};
 	
 	$scope.Wrapper = SearchTermServ;
 
@@ -82,13 +83,12 @@ function HierarchyCtrl($scope, messageService,hierarchyConceptTermServ) {
 
 	$scope.hierarchyServiceWrapper = hierarchyConceptTermServ;
 	$scope.searchTerm='';
-	
+	$scope.selectedRefTerm = {
+			refTermtId : 0,
+			refTermName : ''
+	};
 }
-function DisplayConceptCtrl($scope) {
-	$scope.selectedItem;
-	$scope.selectedItem2;
 
-}
 
 
 searchConceptApp.directive('ngHierarchy',function(messageService,hierarchyConceptTermServ) {
@@ -97,6 +97,7 @@ searchConceptApp.directive('ngHierarchy',function(messageService,hierarchyConcep
 		replace : true,
 		scope : {
 			remoteData : '&',
+			selectedRefTerm : '=selectedRefTerm'
 		},
 		template : '<div class="left" ng-show="currentTerm">'
 			+ '     <ul id="nestedlist">'
@@ -104,13 +105,12 @@ searchConceptApp.directive('ngHierarchy',function(messageService,hierarchyConcep
 			+ '			<li>Parent(s):<ul>'
 			+ '         	<li ng-repeat="term in _parentTermsAndConcepts">'
 			+ '         		<div class="chooseByHierarchy">'
-			+ '						&nbsp;Name Of Reference Term:&nbsp<a href="javascript:void(0);" ng-click="view =! view">view&nbsp;&nbsp;</a>'
-			+ '						<a href="javascript:void(0);" ng-show="view" ng-click="selectRefTerm(term);">'
-			+ '							{{term.termName}}&nbsp;&nbsp;</a>'
+			+ '						&nbsp;Name Of Reference Term:&nbsp;<a href="javascript:void(0);" ng-click="selectRefTerm(term);">view&nbsp;&nbsp;</a>'
+			+ '						{{term.termName}}&nbsp;&nbsp;'
 			+ '						<a href="javascript:void(0);" style="float:right;" ng-click="selectRefTerm(term);">'
-			+ '							{{term.termCode}}</a>'
+			+ '							&nbsp;&nbsp;{{term.termCode}}</a>'
 			+ '						</br><label ng-show="term.mappedConcepts">Choose Concept:&nbsp;</label>'
-			+ '						<strong><button class="chooseByHierarchyConcept" ng-repeat="parentConcept in term.mappedConcepts" ng-click="selectConcept(parentConcept);">'
+			+ '						<strong><button class="chooseByHierarchyConcept" ng-repeat="parentConcept in term.mappedConcepts" ng-click="selectRefTerm(term);">'
 			+ '							{{parentConcept.conceptName}}</button></strong></div></li ng-if="$index!=_parentTermsAndConcepts.length"></ul></br>'
 
 			+ '     						<ul><li>Current Term:<ul><li><div class="currentTerm">'
@@ -121,13 +121,12 @@ searchConceptApp.directive('ngHierarchy',function(messageService,hierarchyConcep
 
 			+ '									<ul><li>Child(ren):<ul> '
 			+ '         							<li ng-repeat="childTerm in _childTermsAndConcepts">'
-			+ '											<div class="chooseByHierarchy">&nbsp;Name Of Reference Term:&nbsp;'
-			+ '												<a href="javascript:void(0);" ng-click="view =! view">view</a>'
-			+ '												<a href="javascript:void(0);" ng-show="view" ng-click="selectRefTerm(childTerm);">'
-			+ '          									{{childTerm.termName}}&nbsp;&nbsp;</a><a href="javascript:void(0);" style="float:right;" ng-click="selectRefTerm(childTerm);">'
-			+ '												{{childTerm.termCode}}</a>'
+			+ '											<div class="chooseByHierarchy">&nbsp;Name Of Reference Term:'
+			+ '												<a href="javascript:void(0);" ng-click="selectRefTerm(childTerm);">view</a>&nbsp;&nbsp;'
+			+ '          									{{childTerm.termName}}&nbsp;&nbsp;<a href="javascript:void(0);" style="float:right;" ng-click="selectRefTerm(childTerm);">'
+			+ '												&nbsp;&nbsp;{{childTerm.termCode}}</a>'
 			+ '												</br><label ng-show="childTerm.mappedConcepts">Choose Concept:&nbsp;</label>'
-			+ '          									<strong> <button class="chooseByHierarchyConcept" ng-click="selectConcept(childConcept);" ng-repeat="childConcept in childTerm.mappedConcepts">'
+			+ '          									<strong> <button class="chooseByHierarchyConcept" ng-click="selectConcept(childTerm, childConcept);" ng-repeat="childConcept in childTerm.mappedConcepts">'
 			+ '												{{childConcept.conceptName}}</button></strong>'
 			+ '											</div></li></ul></li></ul>'
 
@@ -136,41 +135,48 @@ searchConceptApp.directive('ngHierarchy',function(messageService,hierarchyConcep
 			+ ' 				</li>' 
 			+ '			</ul>'
 			+ '	</div>',
+			
 			controller : function($scope, $element, $attrs,messageService,hierarchyConceptTermServ) {				
 
 				$scope.$on('handleBroadcast', function() {
 					var updateType = 'conceptUpdate';
-					$scope.UpdateHierarchy(messageService.message,updateType);
+					var conceptId = '';
+					$scope.UpdateHierarchy(messageService.message, updateType, conceptId);
 				});
 
 				$scope.selectRefTerm = function(choice) {
 
 					var searchTermName=choice.termName;
-					$scope.selectedItem=choice.termName;
+					$scope.selectedRefTerm=choice.termName;
 					var updateType = 'refTermUpdate';
-					$scope.UpdateHierarchy(choice,updateType);
+					var conceptId = '';
+					$scope.UpdateHierarchy(choice, updateType, conceptId);
 
 
 				};
-				$scope.selectConcept = function(choice) {
-
-					var searchTermName=choice.conceptName;
-					messageService.prepForBroadcastToAutoComplete(searchTermName);
-					$scope.selectedItem=choice.conceptName;
-					var updateType = 'conceptUpdate';
-					$scope.UpdateHierarchy(choice,updateType);
+				
+				$scope.selectConcept = function(choice, concept) {
+					
+					var conceptName=concept.conceptName;
+					messageService.prepForBroadcastToAutoComplete(conceptName);
+					
+					var searchTermName=choice.termName;
+					$scope.selectedRefTerm=choice.termName;
+					$scope.selectedConcept=concept.conceptName;
+					var updateType = 'refTermUpdate';
+					$scope.UpdateHierarchy(choice, updateType, concept.conceptId);
 
 
 				};
 
 
-				$scope.UpdateHierarchy = function(currentTerm, updateBy) {
+				$scope.UpdateHierarchy = function(currentTerm, updateBy, conceptId) {
 
 					try {
 						$scope.remoteData({
 							request : {
 								termId : currentTerm.termId,
-								conceptId : currentTerm.conceptId,
+								conceptId : currentTerm.conceptId || conceptId,
 								updateBy :  updateBy
 							},
 							response : function(data) {
@@ -246,9 +252,6 @@ searchConceptApp.directive('ngHierarchy',function(messageService,hierarchyConcep
 
 								}
 
-
-
-
 								$scope.$apply(function () {
 
 									$scope._childTermsAndConcepts = childTermsAndConceptsArray;
@@ -281,7 +284,7 @@ searchConceptApp.directive('ngAutocomplete',function(messageService) {
 			remoteData : '&',
 			placeholder : '@placeholder',
 			restrictCombo : '@restrict',
-			selectedItem : '=selectedItem'
+			selectedConcept : '=selectedConcept'
 		},
 		template : '<div class="left"><div style="background-color:white;position:top; padding: 0;position: relative;top: 1px;" class="dropdown search" '
 			+ +'     ng-class="{open: focused && _choices.length>0}">'
@@ -291,7 +294,7 @@ searchConceptApp.directive('ngAutocomplete',function(messageService) {
 			+ '			<div style="background-color:white;position: relative;">'
 			+ '     		<ul class="select"> '
 			+ '         		<li ng-repeat="choice in _choices">'
-			+ '          			<a href="javascript:void(0);" ng-click="selectMe(choice);">{{choice.conceptId}}&nbsp;&nbsp;{{choice.conceptName}}</a></li>'
+			+ '          			<a href="javascript:void(0);" ng-click="selectConcept(choice);">{{choice.conceptName}}</a></li>'
 			+ '     		</ul></div>'
 			+ '     	<br/><br/>'
 			+ '	</div></div>',
@@ -302,8 +305,8 @@ searchConceptApp.directive('ngAutocomplete',function(messageService) {
 					$scope.searchTerm = messageService.message;		
 				});
 				
-				$scope.selectMe = function(choice) {
-					$scope.selectedItem = choice;
+				$scope.selectConcept = function(choice) {
+					$scope.selectedConcept = choice;
 					$scope.lastSearchTerm = choice.conceptName;
 					$scope.searchTerm=choice.conceptName;
 					messageService.prepForBroadcast(choice);
@@ -363,8 +366,8 @@ searchConceptApp.directive('ngAutocomplete',function(messageService) {
 					var searchInput = angular.element(iElement.children()[0])
 					searchInput.bind('blur', function() {
 						if (scope._choices
-								.indexOf(scope.selectedItem) < 0) {
-							scope.selectedItem = null;
+								.indexOf(scope.selectedConcept) < 0) {
+							scope.selectedConcept = null;
 							scope.searchTerm = '';
 						}
 					});

@@ -1,7 +1,9 @@
 package org.openmrs.module.conceptmanagementapps.fragment.controller;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -10,12 +12,16 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.Concept;
+import org.openmrs.ConceptMap;
 import org.openmrs.ConceptName;
 import org.openmrs.ConceptReferenceTerm;
 import org.openmrs.ConceptSearchResult;
+import org.openmrs.ConceptSource;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.appui.UiSessionContext;
+import org.openmrs.module.conceptmanagementapps.ConceptManagementAppsConstants;
+import org.openmrs.module.conceptmanagementapps.ConceptManagementAppsProperties;
 import org.openmrs.module.conceptmanagementapps.DataObject;
 import org.openmrs.module.conceptmanagementapps.api.ConceptManagementAppsService;
 import org.openmrs.ui.framework.UiUtils;
@@ -52,98 +58,57 @@ public class ChooseConceptByHierarchyFragmentController {
 	    throws Exception {
 		
 		Locale locale = context.getLocale();
+		ConceptService conceptService = (ConceptService) Context.getService(ConceptService.class);
+		
+		ConceptManagementAppsProperties conceptManagementAppsProperties = new ConceptManagementAppsProperties();
+		ConceptSource conceptSource = conceptService
+		        .getConceptSourceByUuid(conceptManagementAppsProperties
+		                .getSnomedCTConceptSourceUuidGlobalProperty(ConceptManagementAppsConstants.SNOMED_CT_CONCEPT_SOURCE_UUID_GP));
 		
 		if (StringUtils.equals(updateBy, "conceptUpdate")) {
-			return getAncestorsByConcept(context, Integer.parseInt(conceptId));
+			
+			Collection<ConceptMap> mappings = conceptService.getConcept(Integer.parseInt(conceptId)).getConceptMappings();
+			
+			for (ConceptMap conceptMap : mappings) {
+				
+				if (StringUtils.equals(conceptMap.getConceptReferenceTerm().getConceptSource().getUuid(),
+				    conceptSource.getUuid())
+				        && StringUtils.equals(conceptMap.getConceptMapType().getUuid(),
+				            ConceptManagementAppsConstants.SAME_AS_CONCEPT_MAP_TYPE_UUID)) {
+					termId = Integer.toString(conceptMap.getConceptReferenceTerm().getConceptReferenceTermId());
+				}
+			}
+			return getRefTermAncestors(context, termId, locale, conceptSource);
 		} else {
-			return getRefTermAncestors(context, termId, locale);
+			return getRefTermAncestors(context, termId, locale, conceptSource);
 		}
 	}
 	
-	private List<String> getRefTermAncestors(UiSessionContext context, String id, Locale locale) throws Exception {
+	private List<String> getRefTermAncestors(UiSessionContext context, String id, Locale locale, ConceptSource conceptSource)
+	    throws Exception {
 		
 		ConceptService conceptService = (ConceptService) Context.getService(ConceptService.class);
+		
 		ConceptManagementAppsService conceptManagementAppsService = (ConceptManagementAppsService) Context
 		        .getService(ConceptManagementAppsService.class);
 		
-		Set<ConceptReferenceTerm> parentTerms = conceptManagementAppsService.getRefTermParentReferenceTerms(conceptService
-		        .getConceptReferenceTerm(Integer.parseInt(id)));
-		Set<ConceptReferenceTerm> childTerms = conceptManagementAppsService.getRefTermChildReferenceTerms(conceptService
-		        .getConceptReferenceTerm(Integer.parseInt(id)));
+		//there are no mappings so we need to send it through blank and let the user know
+		if (StringUtils.isEmpty(id) || StringUtils.isBlank(id) || id.contains("empty")) {
+
+			id = "0";
+			Set<ConceptReferenceTerm> parentTerms = new HashSet<ConceptReferenceTerm>();
+			Set<ConceptReferenceTerm> childTerms = new HashSet<ConceptReferenceTerm>();
+			return formatByRefTermForUIWithGson(conceptService, id, childTerms, parentTerms, locale);
+		}
+		
+		Set<ConceptReferenceTerm> parentTerms = conceptManagementAppsService.getRefTermParentReferenceTerms(
+		    conceptService.getConceptReferenceTerm(Integer.parseInt(id)), conceptSource);
+		
+		Set<ConceptReferenceTerm> childTerms = conceptManagementAppsService.getRefTermChildReferenceTerms(
+		    conceptService.getConceptReferenceTerm(Integer.parseInt(id)), conceptSource);
 		
 		return formatByRefTermForUIWithGson(conceptService, id, childTerms, parentTerms, locale);
 		
-	}
-	
-	private List<String> getAncestorsByConcept(UiSessionContext context, Integer id) {
-		
-		ConceptService conceptService = (ConceptService) Context.getService(ConceptService.class);
-		
-		Locale locale = context.getLocale();
-		
-		ConceptManagementAppsService conceptManagementAppsService = (ConceptManagementAppsService) Context
-		        .getService(ConceptManagementAppsService.class);
-		Set<ConceptReferenceTerm> parentTerms = conceptManagementAppsService.getConceptsParentReferenceTerms(conceptService
-		        .getConcept(id));
-		Set<ConceptReferenceTerm> childTerms = conceptManagementAppsService.getConceptsChildReferenceTerms(conceptService
-		        .getConcept(id));
-		
-		return formatByConceptForUIWithGson(conceptService, id, childTerms, parentTerms, locale);
-	}
-	
-	private List<String> formatByConceptForUIWithGson(ConceptService conceptService, Integer id,
-	                                                  Set<ConceptReferenceTerm> childTerms,
-	                                                  Set<ConceptReferenceTerm> parentTerms, Locale locale) {
-		
-		List<String> data = new ArrayList<String>();
-		Gson gson = new Gson();
-		Concept currentConcept = conceptService.getConcept(id);
-		
-		try {
-			
-			HashMap<ConceptReferenceTerm, List<Concept>> parentMappings = getAssociatedConceptsToRefTerms(parentTerms);
-			HashMap<ConceptReferenceTerm, List<Concept>> childMappings = getAssociatedConceptsToRefTerms(childTerms);
-			
-			List<String> parents = new ArrayList<String>();
-			for (ConceptReferenceTerm term : parentTerms) {
-				
-				List<Concept> mappedConcepts = parentMappings.get(term);
-				List<DataObject> mappedConceptsDOList = new ArrayList<DataObject>();
-				
-				for (Concept concept : mappedConcepts) {
-					
-					DataObject mappedConceptDataObject = simplifyConcept(concept, locale);
-					mappedConceptsDOList.add(mappedConceptDataObject);
-				}
-				
-				DataObject refTermDataObject = simplifyReferenceTerm(term);
-				parents.add(gson.toJson(simplifyMapping(mappedConceptsDOList, refTermDataObject)));
-			}
-			List<String> children = new ArrayList<String>();
-			for (ConceptReferenceTerm term : childTerms) {
-				
-				List<Concept> mappedConcepts = childMappings.get(term);
-				List<DataObject> mappedConceptsDOList = new ArrayList<DataObject>();
-				
-				for (Concept concept : mappedConcepts) {
-					DataObject mappedConceptDataObject = simplifyConcept(concept, locale);
-					mappedConceptsDOList.add(mappedConceptDataObject);
-				}
-				
-				DataObject refTermDataObject = simplifyReferenceTerm(term);
-				children.add(gson.toJson(simplifyMapping(mappedConceptsDOList, refTermDataObject)));
-			}
-			String currentConceptString = gson.toJson(simplifyConcept(currentConcept, locale));
-			
-			DataObject ancestorsDataObject = simplifyAncestors(parents, children, currentConceptString);
-			
-			data.add(gson.toJson(ancestorsDataObject));
-			
-		}
-		catch (Exception e) {
-			log.error("Error generated", e);
-		}
-		return data;
 	}
 	
 	private List<String> formatByRefTermForUIWithGson(ConceptService conceptService, String id,
@@ -234,13 +199,26 @@ public class ChooseConceptByHierarchyFragmentController {
 		
 		List<Object> propertyNamesAndValues = new ArrayList<Object>();
 		
-		propertyNamesAndValues.add("termCode");
-		propertyNamesAndValues.add((term.getCode()));
-		propertyNamesAndValues.add("termId");
-		propertyNamesAndValues.add((term.getId()));
-		if (term.getName() != null) {
+		if (term == null || StringUtils.isBlank(term.getCode()) || StringUtils.isEmpty(term.getCode())) {
+			
+			propertyNamesAndValues.add("termCode");
+			propertyNamesAndValues.add("");
+			propertyNamesAndValues.add("termId");
+			propertyNamesAndValues.add("");
 			propertyNamesAndValues.add("termName");
-			propertyNamesAndValues.add(term.getName());
+			propertyNamesAndValues.add("No Snomed CT Reference Terms Mapped To This Concept");
+			
+		} else {
+			
+			propertyNamesAndValues.add("termCode");
+			propertyNamesAndValues.add((term.getCode()));
+			propertyNamesAndValues.add("termId");
+			propertyNamesAndValues.add((term.getId()));
+			
+			if (term.getName() != null) {
+				propertyNamesAndValues.add("termName");
+				propertyNamesAndValues.add(term.getName());
+			}
 		}
 		DataObject dataObject = DataObject.create(propertyNamesAndValues);
 		return dataObject;

@@ -30,6 +30,8 @@ import org.openmrs.ConceptReferenceTerm;
 import org.openmrs.ConceptSource;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.context.Context;
+import org.openmrs.module.conceptmanagementapps.ConceptManagementAppsConstants;
+import org.openmrs.module.conceptmanagementapps.ConceptManagementAppsProperties;
 import org.openmrs.test.BaseContextSensitiveTest;
 import org.openmrs.test.BaseModuleContextSensitiveTest;
 import org.springframework.mock.web.MockMultipartFile;
@@ -72,9 +74,11 @@ public class ConceptManagementAppsServiceTest extends BaseModuleContextSensitive
 	public void getRefTermParentReferenceTerms_returnsRefTermParentReferenceTerms() throws Exception {
 		executeDataSet("concepts.xml");
 		ConceptService cs = Context.getConceptService();
-		
+		ConceptManagementAppsProperties cmap = new ConceptManagementAppsProperties();		
+		ConceptSource conceptSource = cs
+		        .getConceptSourceByUuid("1ADDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD");
 		Set<ConceptReferenceTerm> refTermList = conceptManagementAppsService.getRefTermParentReferenceTerms(cs
-		        .getConceptReferenceTerm(30));
+		        .getConceptReferenceTerm(30),conceptSource);
 		
 		Assert.assertEquals(1, refTermList.size());
 		

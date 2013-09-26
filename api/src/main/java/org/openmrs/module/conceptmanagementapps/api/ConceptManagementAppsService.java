@@ -207,7 +207,7 @@ public interface ConceptManagementAppsService extends OpenmrsService {
 	 * @return Set of ConceptReferenceTerms
 	 */
 	@Transactional(readOnly = true)
-	public Set<ConceptReferenceTerm> getRefTermParentReferenceTerms(ConceptReferenceTerm currentTerm);
+	public Set<ConceptReferenceTerm> getRefTermParentReferenceTerms(ConceptReferenceTerm currentTerm, ConceptSource conceptSource);
 	
 	/**
 	 * Gets the children for the specified conceptReferenceTerm using the concept reference term map
@@ -217,6 +217,6 @@ public interface ConceptManagementAppsService extends OpenmrsService {
 	 * @return Set of ConceptReferenceTerms
 	 */
 	@Transactional(readOnly = true)
-	public Set<ConceptReferenceTerm> getRefTermChildReferenceTerms(ConceptReferenceTerm currentTerm);
+	public Set<ConceptReferenceTerm> getRefTermChildReferenceTerms(ConceptReferenceTerm currentTerm, ConceptSource conceptSource);
 	
 }

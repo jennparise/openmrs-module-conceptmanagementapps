@@ -168,32 +168,6 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 	}
 	
 	/**
-	 * Gets the children for the specified conceptReferenceTerm using the concept reference term map
-	 * termB id
-	 * 
-	 * @param currentTerm
-	 * @return List of ConceptReferenceTermMaps
-	 * @throws DAOException
-	 */
-	@Transactional(readOnly = true)
-	public List<ConceptReferenceTermMap> getReferenceTermsChildren(ConceptReferenceTerm currentTerm) throws DAOException {
-		return this.dao.getReferenceTermsChildren(currentTerm);
-	}
-	
-	/**
-	 * Gets the parents for the specified conceptReferenceTerm using the concept reference term map
-	 * termA id
-	 * 
-	 * @param currentTerm
-	 * @return List of ConceptReferenceTermMaps
-	 * @throws DAOException
-	 */
-	@Transactional(readOnly = true)
-	public List<ConceptReferenceTermMap> getReferenceTermsParents(ConceptReferenceTerm currentTerm) throws DAOException {
-		return this.dao.getReferenceTermsParents(currentTerm);
-	}
-	
-	/**
 	 * @see org.openmrs.module.conceptmanagementapps.api.ConceptManagementAppsService#getUnmappedConcepts(org.openmrs.ConceptSource,
 	 *      java.util.List)
 	 */
@@ -307,7 +281,8 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 	 * @see org.openmrs.module.conceptmanagementapps.api.ConceptManagementAppsService#getRefTermChildReferenceTerms(org.openmrs.ConceptReferenceTerm)
 	 */
 	@Transactional(readOnly = true)
-	public Set<ConceptReferenceTerm> getRefTermChildReferenceTerms(ConceptReferenceTerm currentTerm) {
+	public Set<ConceptReferenceTerm> getRefTermChildReferenceTerms(ConceptReferenceTerm currentTerm,
+	                                                               ConceptSource conceptSource) {
 		
 		ConceptService conceptService = (ConceptService) Context.getService(ConceptService.class);
 		
@@ -320,7 +295,8 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 			
 			if (termMap.getTermB().getId() == currentTerm.getId()
 			        && StringUtils.equals(termMap.getConceptMapType().getUuid(),
-			            ConceptManagementAppsConstants.SAME_AS_CONCEPT_MAP_TYPE_UUID)) {
+			            ConceptManagementAppsConstants.SAME_AS_CONCEPT_MAP_TYPE_UUID)
+			        && termMap.getTermB().getConceptSource() == conceptSource) {
 				
 				childTerms.add(conceptService.getConceptReferenceTerm(termMap.getTermA().getId()));
 			}
@@ -332,7 +308,8 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 	 * @see org.openmrs.module.conceptmanagementapps.api.ConceptManagementAppsService#getRefTermParentReferenceTerms(org.openmrs.ConceptReferenceTerm)
 	 */
 	@Transactional(readOnly = true)
-	public Set<ConceptReferenceTerm> getRefTermParentReferenceTerms(ConceptReferenceTerm currentTerm) {
+	public Set<ConceptReferenceTerm> getRefTermParentReferenceTerms(ConceptReferenceTerm currentTerm,
+	                                                                ConceptSource conceptSource) {
 		
 		ConceptService conceptService = (ConceptService) Context.getService(ConceptService.class);
 		
@@ -345,7 +322,8 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 			
 			if (termMap.getTermA().getId() == currentTerm.getId()
 			        && StringUtils.equals(termMap.getConceptMapType().getUuid(),
-			            ConceptManagementAppsConstants.SAME_AS_CONCEPT_MAP_TYPE_UUID)) {
+			            ConceptManagementAppsConstants.SAME_AS_CONCEPT_MAP_TYPE_UUID)
+			        && termMap.getTermB().getConceptSource() == conceptSource) {
 				
 				parentTerms.add(conceptService.getConceptReferenceTerm(termMap.getTermB().getId()));
 			}
@@ -525,7 +503,10 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 				
 				if (concept.getPreferredName(locale) != null) {
 					conceptsMissingMappings.put(header[5], concept.getPreferredName(locale));
-				} else {
+				} else if (concept.getName() != null) {
+					conceptsMissingMappings.put(header[5], concept.getName());
+				}
+				else {
 					conceptsMissingMappings.put(header[5], " ");
 				}
 				
@@ -545,7 +526,7 @@ public class ConceptManagementAppsServiceImpl extends BaseOpenmrsService impleme
 						mappingsName += cm.getConceptMapType().getName() + " ";
 					}
 					if (cm.getConceptReferenceTerm() != null && cm.getConceptReferenceTerm().getConceptSource() != null) {
-						mappingsName += cm.getConceptReferenceTerm().getConceptSource().getName() + "\n";
+						mappingsName += cm.getConceptReferenceTerm().getConceptSource().getName() + " "+cm.getConceptReferenceTerm().getCode() + "\n";
 					}
 				}
 				

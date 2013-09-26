@@ -31,9 +31,9 @@ public class ManageSnomedCTPageController {
 	
 	protected final Log log = LogFactory.getLog(this.getClass());
 	
-	public void post(@RequestParam("snomedDirectoryLocation") String snomedFileDirectoryLocation,
-	                 @RequestParam(value = "sourceList", required = false) String[] sourceIds, UiUtils ui,
-	                 PageRequest pageRequest, HttpServletRequest request, PageModel model) {
+	public String post(@RequestParam("snomedDirectoryLocation") String snomedFileDirectoryLocation,
+	                   @RequestParam(value = "sourceList", required = false) String[] sourceIds, UiUtils ui,
+	                   PageRequest pageRequest, HttpServletRequest request, PageModel model) {
 		
 		ConceptService conceptService = Context.getConceptService();
 		
@@ -46,7 +46,7 @@ public class ManageSnomedCTPageController {
 		        .getService(ConceptManagementAppsService.class);
 		
 		if (StringUtils.equalsIgnoreCase("cancel", inputType)) {
-			
+			System.out.println("cancelling");
 			conceptManagementAppsService.setManageSnomedCTProcessCancelled(true);
 			setValuesForNoProcessRunning(model, conceptManagementAppsService, snomedFileDirectoryLocation);
 			
@@ -100,13 +100,18 @@ public class ManageSnomedCTPageController {
 				sourceId = source.getId();
 			}
 		}
+		
 		model.addAttribute("sourceList", sourceList);
 		model.addAttribute("sourceId", sourceId);
 		model.addAttribute("manageSnomedCTError", manageSnomedCTError);
-		
+		if (StringUtils.isNotBlank(manageSnomedCTError) && StringUtils.isNotEmpty(manageSnomedCTError)) {
+			return "redirect:/conceptmanagementapps/manageSnomedCT.page?manageSnomedCTError=" + manageSnomedCTError;
+		} else {
+			return "redirect:/conceptmanagementapps/manageSnomedCT.page#importSnomedCtContent";
+		}
 	}
 	
-	public void get(UiSessionContext sessionContext, PageModel model) throws Exception {
+	public void get(UiSessionContext sessionContext, PageModel model, HttpServletRequest request) throws Exception {
 		
 		ConceptManagementAppsService conceptManagementAppsService = (ConceptManagementAppsService) Context
 		        .getService(ConceptManagementAppsService.class);
@@ -125,9 +130,15 @@ public class ManageSnomedCTPageController {
 				sourceId = source.getId();
 			}
 		}
+		String manageSnomedCTError = "";
+		if (StringUtils.isNotBlank(request.getParameter("manageSnomedCTError"))
+		        && StringUtils.isNotEmpty(request.getParameter("manageSnomedCTError"))) {
+			manageSnomedCTError = request.getParameter("manageSnomedCTError");
+		}
+		
 		model.addAttribute("sourceList", sourceList);
 		model.addAttribute("sourceId", sourceId);
-		model.addAttribute("manageSnomedCTError", "");
+		model.addAttribute("manageSnomedCTError", manageSnomedCTError);
 		
 		if (conceptManagementAppsService.getManageSnomedCTProcessCancelled()) {
 			

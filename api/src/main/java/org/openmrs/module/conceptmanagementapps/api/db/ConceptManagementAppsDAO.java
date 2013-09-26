@@ -104,6 +104,7 @@ public interface ConceptManagementAppsDAO {
 	 * termA id
 	 * 
 	 * @param currentTerm
+	 * @param conceptSource
 	 * @return List of ConceptReferenceTermMaps
 	 * @throws DAOException
 	 */
@@ -114,6 +115,7 @@ public interface ConceptManagementAppsDAO {
 	 * termB id
 	 * 
 	 * @param currentTerm
+	 * @param conceptSource
 	 * @return List of ConceptReferenceTermMaps
 	 * @throws DAOException
 	 */

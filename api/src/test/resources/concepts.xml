@@ -92,7 +92,7 @@
 		retired="0" uuid="0f5812f8-b86f-4909-9927-f8c7fwq3a303" />
 
 	<concept_reference_term
-		concept_reference_term_id="225" concept_source_id="6" name="reftermTest"
+		concept_reference_term_id="225" concept_source_id="1" name="reftermTest"
 		code="123456" description="test" creator="1" date_created="2013-06-22 20:51:38"
 		retired="0" uuid="0f5812f8-b86f-4909-9927-f8c7fwq3a344" />
 

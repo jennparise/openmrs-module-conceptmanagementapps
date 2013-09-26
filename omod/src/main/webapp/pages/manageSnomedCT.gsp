@@ -18,6 +18,7 @@
 
 	}
 	def sourceid = sourceId;
+	def manageSnomedCTPathError = manageSnomedCTError;
 
 %>
 
@@ -79,7 +80,7 @@ ${ui.message("conceptmanagementapps.managesnomedct.instructions")}
     
 </fieldset>
 				
-	<fieldset id="importSnomedCtContent" style="display: none">	
+	<fieldset id="importSnomedCtContent" name="importSnomedCtContent" style="display: none">	
 	
 	<legend>Import SNOMED CT Content</legend>
 
@@ -154,14 +155,18 @@ ${ui.message("conceptmanagementapps.managesnomedct.instructions")}
 
 	resetButtonsAndFields();
 	
-	var manageSnomedCTError = "<%=manageSnomedCTError.toString()%>";
+	var manageSnomedCTPathError = "<%=manageSnomedCTError.toString()%>";
+	
  	var configSaved = "<%=configSaved.toString()%>";
  
- 	if(configSaved === "configSaved" && manageSnomedCTError.length < 1){
+ 	if(configSaved === "configSaved" && manageSnomedCTPathError.length < 1){
+ 		
  		document.getElementById('importSnomedCtContent').style.display = "block";
+
  	}
  	
  	var theProcessRunning = "<%=processRunning.toString()%>";
+ 	
 	if(theProcessRunning === "addSnomedCTNames"){
 	
 		document.getElementById('addSnomedCTRelationshipsId').disabled = true;
@@ -170,7 +175,7 @@ ${ui.message("conceptmanagementapps.managesnomedct.instructions")}
 		document.getElementById('showHideCancelAddNames').style.display = "block";
 		document.getElementById('processStatus').style.display = "block";
 		document.getElementById('saveConfigurationId').disabled = true;
-		setTimeout(function(){window.location.reload(1);}, 10000);	
+		setTimeout(function(){reloadPage()}, 10000);
 	}
 	if(theProcessRunning === "addSnomedCTRelationships"){
 	
@@ -180,7 +185,7 @@ ${ui.message("conceptmanagementapps.managesnomedct.instructions")}
 		document.getElementById('showHideCancelAddRelationships').style.display = "block";
 		document.getElementById('processStatus').style.display = "block";
 		document.getElementById('saveConfigurationId').disabled = true;
-		setTimeout(function(){window.location.reload(1);}, 10000);
+		setTimeout(function(){reloadPage()}, 10000);
 	}
 	if(theProcessRunning === "addSnomedCTAncestors"){
 	
@@ -190,7 +195,7 @@ ${ui.message("conceptmanagementapps.managesnomedct.instructions")}
 		document.getElementById('showHideCancelAddAncestors').style.display = "block";
 		document.getElementById('processStatus').style.display = "block";
 		document.getElementById('saveConfigurationId').disabled = true;
-		setTimeout(function(){window.location.reload(1);}, 10000);
+		setTimeout(function(){reloadPage()}, 10000);
 	}
 	
 	function resetButtonsAndFields(){
@@ -206,8 +211,7 @@ ${ui.message("conceptmanagementapps.managesnomedct.instructions")}
 		document.getElementById('showHideCancelAddAncestors').style.display = "none";
 		document.getElementById('saveConfigurationId').disabled = false;
 		document.getElementById('processStatus').style.display = "none";
-
-		
+			
 	}
 }
 
@@ -232,7 +236,7 @@ function validateForm(inputType) {
     	directoryLocationErrText.style.display = "block";
     	error=1;
     }
-    if(inputType.name == "showHideCancelAdd"){
+    if(inputType.name == "showHideCancelAdd"){ 
     	cancelAddNames.style.display = "block";
     }
     if(error == 1){
@@ -241,14 +245,19 @@ function validateForm(inputType) {
     else 
     { 
     	document.manageSnomedCT.submit();
-
-    	if(inputType.name === "addSnomedCTRelationships" || inputType.name === "addSnomedCTAncestors" || inputType.name === "addSnomedCTNames"){
-    		setTimeout(function(){window.location.replace("${ ui.pageLink("conceptmanagementapps", "manageSnomedCT") }");}, 2000);
+		
+    	if(inputType.name == "addSnomedCTRelationships" || inputType.name == "addSnomedCTAncestors" || inputType.name == "addSnomedCTNames"){
+    		setTimeout(function(){reloadPage()}, 2000);
+    		
     	}
     	
     }
 }
-
+function reloadPage(){
+	window.location.hash="#importSnomedCtContent";
+	window.location.reload(true);
+}
 	window.onload=showHideValues();
+	
  
 </script>

@@ -13,7 +13,7 @@ ${ ui.includeFragment("uicommons", "validationMessages")}
         { label: "${ ui.message("conceptmanagementapps.homepage.title") }", link: "${ ui.pageLink("conceptmanagementapps", "conceptManagementAppsMain") }" },
         { label: "${ ui.message("conceptmanagementapps.chooseconceptbyhierarchy.title") }", link: "${ ui.pageLink("conceptmanagementapps", "chooseConceptByHierarchy") }" }
     ];
- </script>
+     </script>
 
 
  <h2>
